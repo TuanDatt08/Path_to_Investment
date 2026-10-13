@@ -54,6 +54,7 @@ body {
   color: var(--fg); font: 15px/1.65 var(--font-body);
 }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.25; }
+h1 { margin-left: -0.05em; } /* bù khoảng trống bên trái của chữ có chân cỡ lớn */
 h2 { font-size: 26px; }
 h3 { font-size: 17.5px; }
 .verse { font-family: var(--font-display); font-style: italic; color: var(--accent); font-size: 17px; }
@@ -72,7 +73,7 @@ nav {
 }
 .nav-in { max-width: 1080px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; }
 .brand { display: flex; gap: 10px; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
-.brand svg { flex: none; }
+.brand svg { flex: none; margin-left: -5px; } /* hình quả bơ cách mép khung ~5px, bù lại cho thẳng hàng nội dung */
 .links { display: flex; gap: 4px; overflow-x: auto; }
 .links a { color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; }
 .links a:hover { color: var(--fg); background: var(--surface); }
