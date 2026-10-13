@@ -34,6 +34,7 @@ assert.strictEqual(call({ type: "state" }, "sai").auth, false, "sai mật khẩu
 assert.ok(call({ type: "check", phase: "w1", item: "m1", on: true, title: "Bài 1" }).main.checked.w1.m1);
 assert.ok(call({ type: "check", phase: "w99", item: "m1", on: true }).error, "tuần lạ phải bị từ chối");
 call({ type: "check", phase: "w1", item: "m2", on: true });
+assert.ok(call({ type: "check", phase: "a3", item: "m1", on: true }).main.checked.a3.m1, "tuần Nâng cao phải lưu được");
 assert.strictEqual(call({ type: "check", phase: "w1", item: "m1", on: false }).main.checked.w1.m1, undefined, "bỏ tick phải xóa dòng");
 call({ type: "name", who: "A", value: "  An " });
 call({ type: "start", value: "2026-10-12" });

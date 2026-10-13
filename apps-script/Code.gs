@@ -6,7 +6,8 @@ const FINE_TYPES = { "Trễ giờ": 50000, "Không chuẩn bị bài": 100000, "
 const PASS = "Dùng vé hoãn";
 const MAX_PASS = 2;
 const MAX_FINES = 500;
-const WEEKS = ["w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9"];
+// w1–w9: lộ trình Cơ bản, a1–a9: lộ trình Nâng cao.
+const WEEKS = ["w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9"];
 const YES = "Có";
 
 // textCols: các cột để dạng văn bản, để Sheets không tự đổi "2026-10-15" thành ngày hay "=..." thành công thức.

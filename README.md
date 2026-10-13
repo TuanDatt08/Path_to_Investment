@@ -1,6 +1,10 @@
-# VN-HỌC: Lộ trình Chứng khoán 8 Tuần
+# VN-HỌC: Lộ trình Chứng khoán 9 Tuần
 
 Web app cho 2 người cùng theo dõi lộ trình học: checklist từng bài nhỏ, lịch tuần và sổ quỹ phạt.
+
+Có hai lộ trình, chuyển qua lại bằng tab:
+- **Cơ bản (9 tuần, 41 bài):** cho người mới, tên bài là câu hỏi đời thường, có ví dụ gần gũi. Mã tuần `w1`–`w9`.
+- **Nâng cao (học sau):** chi tiết hơn, nhiều thuật ngữ hơn. Mã tuần `a1`–`a9`.
 
 ```
 Trang web (Netlify)  ──►  Google Apps Script  ──►  Google Sheet

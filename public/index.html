@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lộ trình Chứng khoán 8 Tuần</title>
+<title>Lộ trình Chứng khoán 9 Tuần</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z' fill='%235b7f24'/%3E%3Cpath d='M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z' fill='%23dfe9b4'/%3E%3Ccircle cx='16' cy='19' r='4.5' fill='%238a5a3b'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Roboto+Mono:wght@400;500&display=swap">
@@ -187,6 +187,17 @@ details.ls[open] .hint::after { content: "Thu gọn ▴"; }
 .ls-body ul { list-style: disc; padding-left: 18px; gap: 3px; }
 .ls-q { padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px dashed var(--line); }
 .lesson > input:checked + details .lt { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--accent); }
+.tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); justify-self: start; }
+.tabs button { border: 0; background: transparent; border-radius: 999px; padding: 8px 18px; font-weight: 600; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.track { display: grid; gap: 14px; }
+.adv-note { padding: 12px 16px; border-radius: 12px; background: var(--ref-soft); color: var(--fg); font-size: 14px; }
+.quiz { padding: 18px 20px; display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: center; justify-content: space-between; background: var(--accent-soft); border-color: transparent; box-shadow: none; }
+.quiz-text { display: grid; gap: 4px; min-width: 0; flex: 1 1 320px; }
+.quiz-text .label { margin: 0; }
+.quiz-q { font-family: var(--font-display); font-size: 19px; line-height: 1.4; }
+.quiz-text .muted { font-size: 13px; }
+.check li.ex + li.ex { margin-top: 0; border-top: 0; padding-top: 0; }
 .check li.ex { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
 .aside { display: grid; gap: 16px; align-content: start; }
 .howto { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
@@ -297,7 +308,7 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
   <section id="tong-quan">
     <div class="section-head">
       <span class="eyebrow" id="hello">Kế hoạch tự học · 2 người</span>
-      <h1 style="font-size:clamp(30px,5vw,44px)">Lộ trình Chứng khoán <em style="color:var(--accent)">8 Tuần</em></h1>
+      <h1 style="font-size:clamp(30px,5vw,44px)">Lộ trình Chứng khoán <em style="color:var(--accent)">9 Tuần</em></h1>
       <p class="verse">Mỗi ngày một bài nhỏ, như hạt bơ lặng lẽ nảy mầm.</p>
     </div>
 
@@ -358,7 +369,25 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
       <h2>Lộ trình từng tuần</h2>
       <p>Hai người học chung cùng một nội dung. Mỗi bài nhỏ chỉ một ý. Nhãn <span class="day-tag" style="background:var(--ref-soft);color:var(--ref)">T3</span> là học thứ 3, <span class="day-tag" style="background:var(--accent-soft);color:var(--accent)">T5</span> là học thứ 5.</p>
     </div>
-    <div class="phases" id="phases"></div>
+    <div class="tabs" role="tablist" aria-label="Chọn lộ trình">
+      <button type="button" role="tab" id="tab-basic" data-track="basic" aria-selected="true">Cơ bản · 9 tuần</button>
+      <button type="button" role="tab" id="tab-adv" data-track="adv" aria-selected="false">Nâng cao · học sau</button>
+    </div>
+    <div id="track-basic" class="track">
+      <div class="card quiz">
+        <div class="quiz-text">
+          <span class="label">Đố vui</span>
+          <p class="quiz-q" id="quiz-q">Bấm nút để bốc ngẫu nhiên một câu hỏi từ những bài hai bạn đã tick.</p>
+          <span class="muted" id="quiz-from"></span>
+        </div>
+        <button type="button" class="primary" id="quiz-btn">Bốc câu hỏi</button>
+      </div>
+      <div class="phases" id="phases"></div>
+    </div>
+    <div id="track-adv" class="track" hidden>
+      <p class="adv-note">Phần này sâu hơn và nhiều thuật ngữ hơn. Nên học sau khi xong phần Cơ bản và đã chơi thử bằng tiền ảo khoảng 2–3 tháng.</p>
+      <div class="phases" id="phases-adv"></div>
+    </div>
   </section>
 
   <section>
@@ -423,10 +452,190 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 // Link Web App của Google Apps Script (Deploy → Web app), dạng https://script.google.com/macros/s/.../exec
 const API_URL = "https://script.google.com/macros/s/AKfycbz8x5YnaROR4TcE002DtAwJZv1KbHk6K4D3UrT0QWNfiHr0-vQui0L1oD5dAorrtmo/exec";
 
-// Mỗi tuần: các bài nhỏ (~15 phút/bài) + 1 bài tập chung.
+// Lộ trình Cơ bản (9 tuần, cho người mới): tên bài là câu hỏi đời thường, mỗi bài có ví dụ gần gũi.
 // Mỗi bài: [mã, tên bài, câu tự kiểm tra, [học về gì...], [tìm ở đâu...]]
-// 4 bài đầu học thứ 3, phần còn lại học cùng nhau thứ 5.
-const PHASES = [
+// extras: các việc thêm trong tuần [mã, tên, mô tả]. 4 bài đầu học thứ 3, phần còn lại học cùng nhau thứ 5.
+const TRY = ["tt", "Chơi thử bằng tiền ảo", "Mỗi người giả vờ mua 1 mã, viết 1 câu lý do vào ô Ghi chú tuần này. Tuần sau mở bảng giá xem nếu mua thật thì đang lời hay lỗ"];
+const BASIC = [
+  { n: 1, title: "Tiền từ đâu ra?",
+    items: [
+      ["m1", "Không có tiền thì người ta mua bán thế nào?", "Bạn có 1 con gà, muốn đổi lấy gạo, nhưng người có gạo lại chỉ cần vải. Chuyện gì xảy ra?",
+        ["Ngày xưa người ta đổi hàng lấy hàng: gà đổi gạo, gạo đổi vải", "Rất bất tiện: phải tìm đúng người cần đúng thứ mình có", "Tiền ra đời làm vật trung gian: ai cũng nhận, đổi được mọi thứ", "Tiền còn dùng để so giá (cái này đắt gấp đôi cái kia) và để dành cho sau này"],
+        ["YouTube: tìm \"lịch sử của tiền\"", "Wikipedia tiếng Việt: bài \"Tiền\""]],
+      ["m2", "Vì sao tờ 500.000đ có giá trị dù chỉ là tờ giấy?", "Nếu mai không ai chịu nhận tiền giấy nữa thì tờ 500.000đ còn giá trị không?",
+        ["Giống phiếu ăn ở căng tin: bản thân tờ phiếu không đáng gì, nhưng ai cũng chấp nhận nên đổi được cơm", "Tiền giấy cũng vậy: có giá trị vì cả nước tin và Nhà nước quy định dùng nó để mua bán, nộp thuế", "Ngày nay tiền không đổi ra vàng được nữa. Loại tiền này gọi là tiền pháp định"],
+        ["Từ khóa: \"tiền pháp định là gì\"", "YouTube: tìm \"vì sao tiền giấy có giá trị\""]],
+      ["m3", "Ngân hàng lấy tiền đâu cho bạn vay?", "Bạn gửi 10 triệu vào ngân hàng. Ngân hàng cất nguyên 10 triệu đó trong két hay làm gì với nó?",
+        ["Ngân hàng nhận tiền gửi của người này rồi cho người khác vay", "Ngân hàng trả bạn lãi thấp, thu lãi người vay cao hơn: phần chênh lệch là tiền lời của ngân hàng", "Khi cho vay, ngân hàng chỉ cần ghi thêm số tiền vào tài khoản người vay, nên tổng tiền trong nền kinh tế tăng lên"],
+        ["Từ khóa: \"ngân hàng kiếm tiền như thế nào\"", "Video của Ray Dalio, đoạn nói về vay nợ (tín dụng)"]],
+      ["m4", "Vì sao kinh tế lúc nóng lúc lạnh?", "Vì sao khi mọi người vay nhiều để mua sắm, một thời gian sau họ lại phải chi tiêu ít đi?",
+        ["Khi vay dễ, mọi người mua sắm nhiều, cửa hàng bán chạy: kinh tế \"nóng\"", "Nhưng vay thì phải trả. Đến lúc trả nợ, mọi người phải tiêu ít lại: kinh tế \"nguội\"", "Cứ thế lặp lại thành từng vòng, thường vài năm một lần"],
+        ["Video của Ray Dalio (xem cả video, khoảng 30 phút)"]],
+    ],
+    ex: "Cùng xem video của Ray Dalio. Mỗi người kể lại bằng 5 câu của mình, người kia bổ sung chỗ còn thiếu",
+    src: ["Video: How The Economic Machine Works (Ray Dalio). Trên YouTube tìm \"Cỗ máy kinh tế vận hành như thế nào\" để có phụ đề tiếng Việt", "Đọc thêm: Tâm lý học về tiền, chương 1–2"] },
+  { n: 2, title: "Vì sao tiền cứ \"teo\" dần?",
+    items: [
+      ["m1", "Vì sao giá phở năm nào cũng tăng?", "10 năm trước bát phở 30.000đ, giờ 50.000đ. Tờ 100.000đ của bạn mua được nhiều hay ít phở hơn trước?",
+        ["Giá cả nói chung tăng dần theo thời gian. Hiện tượng này gọi là lạm phát", "Cùng một số tiền, năm sau mua được ít đồ hơn năm nay: tiền bị \"teo\" sức mua", "Lạm phát vài %/năm là bình thường. Nhà nước công bố con số này hằng tháng (chỉ số CPI)"],
+        ["Từ khóa: \"lạm phát là gì giải thích đơn giản\"", "Tin \"CPI Việt Nam\" tháng gần nhất trên báo"]],
+      ["m2", "Gửi tiết kiệm có thật sự giàu lên không?", "Gửi tiết kiệm lãi 5%/năm, giá cả tăng 4%/năm. Thực tế bạn giàu thêm khoảng bao nhiêu?",
+        ["Lãi suất giống \"tiền thuê\" tiền: bạn cho ngân hàng mượn tiền thì được trả lãi", "Nhưng giá cả cũng tăng. Phần giàu lên thật ≈ lãi suất − lạm phát", "Lãi 5%, lạm phát 4% thì thực tế chỉ giàu thêm khoảng 1%/năm. Vì vậy người ta mới tìm thêm cách đầu tư khác"],
+        ["Bảng lãi suất tiết kiệm trên website ngân hàng bạn đang dùng", "Từ khóa: \"lãi suất thực là gì\""]],
+      ["m3", "\"Lãi mẹ đẻ lãi con\" là gì?", "Vì sao gửi 20 năm thì tiền lãi nhiều hơn hẳn gấp đôi so với gửi 10 năm?",
+        ["Lãi năm nay được cộng vào gốc, năm sau tính lãi trên cả phần lãi đó. Cách tính này gọi là lãi kép", "Giống quả bóng tuyết lăn: càng lăn lâu càng to nhanh", "Bắt đầu sớm quan trọng hơn bỏ nhiều tiền một lúc"],
+        ["Từ khóa: \"lãi kép là gì\"", "Thử trong Excel: =10000000*(1+8%)^10"]],
+      ["m4", "Bao lâu thì tiền gấp đôi?", "Lãi 8%/năm thì khoảng bao nhiêu năm tiền gấp đôi?",
+        ["Mẹo nhẩm: lấy 72 chia cho lãi suất (%) ra số năm để tiền gấp đôi", "Lãi 6% thì khoảng 12 năm, lãi 8% thì khoảng 9 năm", "Dùng ngược cho lạm phát: giá cả tăng 4%/năm thì khoảng 18 năm sau, số tiền đó chỉ còn mua được một nửa"],
+        ["Từ khóa: \"quy tắc 72\""]],
+    ],
+    ex: "Tính trong Excel: 10 triệu cất trong tủ 10 năm, lạm phát 3,5%/năm thì còn mua được bao nhiêu (≈7,1 triệu); mỗi tháng góp 2 triệu, lãi 8%/năm trong 10 năm được bao nhiêu (=FV(8%/12,120,-2000000) ≈ 366 triệu)",
+    src: ["Excel hoặc Google Sheets", "Đọc thêm: Tâm lý học về tiền, chương 3–4"] },
+  { n: 3, title: "Ai đứng sau lãi suất?",
+    items: [
+      ["m1", "Ngân hàng Nhà nước làm gì?", "Ngân hàng Nhà nước khác ngân hàng bạn gửi tiết kiệm ở điểm nào?",
+        ["Ngân hàng Nhà nước (NHNN) giống \"người giữ nhịp\" tiền của cả nước", "Không nhận tiền gửi của người dân, mà quản lý các ngân hàng khác", "Việc chính: giữ cho giá cả không tăng quá nhanh và kinh tế phát triển ổn định. Ở Mỹ, việc này do FED làm"],
+        ["Từ khóa: \"Ngân hàng Nhà nước làm gì\"", "Từ khóa: \"FED là gì\""]],
+      ["m2", "Vì sao có lúc vay mua nhà đắt hơn?", "Khi NHNN tăng lãi suất, người đang vay mua nhà sẽ vui hay lo? Vì sao?",
+        ["NHNN có thể làm lãi suất cả nền kinh tế tăng hoặc giảm, giống vặn van nước", "Tăng lãi suất: vay đắt hơn, gửi tiết kiệm lời hơn, mọi người tiêu ít lại, giá cả bớt tăng", "Giảm lãi suất: vay rẻ hơn, mọi người vay và tiêu nhiều hơn, kinh tế chạy nhanh hơn"],
+        ["Từ khóa: \"lãi suất điều hành là gì\"", "Tin tức về lãi suất trên VnExpress, CafeF"]],
+      ["m3", "Mỹ tăng lãi suất thì Việt Nam bị gì?", "Nếu giữ đô la ở Mỹ được lãi cao hơn, nhà đầu tư nước ngoài sẽ muốn làm gì với tiền của họ ở Việt Nam?",
+        ["Tỷ giá là giá để đổi tiền: 1 đô la Mỹ đổi được bao nhiêu đồng", "Mỹ tăng lãi suất: giữ đô la lời hơn, tiền có xu hướng chảy về Mỹ", "Tiền đồng dễ bị mất giá, nên NHNN có khi phải tăng lãi suất theo. Vì vậy tin về FED hay làm chứng khoán Việt Nam lên xuống"],
+        ["Từ khóa: \"FED tăng lãi suất ảnh hưởng Việt Nam\""]],
+      ["m4", "Kinh tế cũng có \"mùa\"", "Kể tên 4 \"mùa\" của kinh tế theo thứ tự.",
+        ["Lên: làm ăn tốt, nhiều việc làm, mọi người tiêu nhiều", "Đỉnh: nóng quá, giá cả tăng nhanh", "Xuống: làm ăn chậm lại, có người mất việc", "Đáy: chạm mức thấp nhất rồi bắt đầu hồi lại"],
+        ["Từ khóa: \"chu kỳ kinh tế là gì\""]],
+      ["m5", "Vì sao lãi suất tăng thì chứng khoán hay giảm?", "Gửi tiết kiệm đang được 10%/năm, rất an toàn. Bạn có còn muốn mua cổ phiếu nhiều rủi ro không?",
+        ["Gửi tiết kiệm lời cao thì nhiều người rút tiền khỏi chứng khoán để gửi ngân hàng", "Công ty đang vay nợ phải trả lãi nhiều hơn, nên lời của công ty giảm", "Ngược lại, lãi suất giảm thường tốt cho chứng khoán"],
+        ["Từ khóa: \"lãi suất ảnh hưởng chứng khoán thế nào\""]],
+    ],
+    ex: "Mỗi người tìm 1 tin gần đây về lãi suất (của NHNN hoặc FED), kể cho người kia nghe, cùng đoán chứng khoán sẽ phản ứng thế nào",
+    src: ["Tin tức trên website Ngân hàng Nhà nước (sbv.gov.vn)", "Mục Kinh doanh trên VnExpress hoặc CafeF", "Đọc thêm: Tâm lý học về tiền, chương 5–6"] },
+  { n: 4, title: "Tiền của chính mình",
+    items: [
+      ["m1", "Một tuần mình tiêu vào đâu?", "Khoản chi lớn nhất của bạn tuần qua là gì? Có bất ngờ không?",
+        ["Ghi lại mọi khoản chi trong 7 ngày, kể cả cốc trà đá", "Ghi bằng sổ tay, Google Sheets hay app quản lý chi tiêu đều được", "Cuối tuần cộng theo nhóm: ăn uống, đi lại, giải trí, học tập"],
+        ["Từ khóa: \"app quản lý chi tiêu\"", "Google Sheets: tìm \"mẫu quản lý chi tiêu cá nhân\""]],
+      ["m2", "Cái gì \"cần\", cái gì \"muốn\"?", "Xếp 5 khoản chi gần nhất của bạn vào hai nhóm \"cần\" và \"muốn\".",
+        ["Cần: thiếu thì ảnh hưởng cuộc sống, như ăn, ở, đi lại, học", "Muốn: có thì vui, không có vẫn sống được, như trà sữa, quần áo mới", "Gợi ý chia tiền: 50% cho cái cần, 30% cho cái muốn, 20% để dành"],
+        ["Từ khóa: \"quy tắc 50/30/20\""]],
+      ["m3", "Đồ nào mang tiền về, đồ nào lấy tiền đi?", "Chiếc xe máy bạn đang đi mang tiền về hay lấy tiền đi? Vì sao?",
+        ["Tài sản: thứ mang tiền về cho bạn, như tiền gửi có lãi, cổ phiếu được chia lãi, nhà cho thuê", "Tiêu sản: thứ lấy tiền đi, như xe máy (xăng, sửa chữa), điện thoại mới", "Người giàu lên thường là người mua thêm tài sản, bớt tiêu sản"],
+        ["Sách: Cha giàu cha nghèo (Robert Kiyosaki)", "Từ khóa: \"tài sản và tiêu sản\""]],
+      ["m4", "Quỹ phòng thân bao nhiêu là đủ?", "Nếu mai bạn ốm phải nghỉ 2 tháng, bạn cần bao nhiêu tiền để sống?",
+        ["Quỹ phòng thân là tiền để dành riêng cho chuyện bất ngờ: ốm, mất việc, hỏng xe", "Thường bằng 3–6 tháng chi tiêu cần thiết", "Để ở chỗ an toàn, rút ra nhanh được. Không dùng tiền này để mua cổ phiếu"],
+        ["Từ khóa: \"quỹ khẩn cấp bao nhiêu là đủ\""]],
+      ["m5", "Mình được phép đầu tư bao nhiêu?", "Vì sao không nên vay tiền hay dùng quỹ phòng thân để mua cổ phiếu?",
+        ["Tiền được phép đầu tư = tiền còn lại sau chi tiêu cần thiết và quỹ phòng thân", "Chỉ đầu tư số tiền mà lỡ mất đi cũng không ảnh hưởng cuộc sống", "Người mới không nên vay tiền để đầu tư"],
+        ["Từ khóa: \"đầu tư bằng tiền nhàn rỗi\""]],
+    ],
+    extras: [["dv", "Đố vui giữa chặng", "Dùng nút \"Bốc câu hỏi\" ở đầu lộ trình. Mỗi người trả lời 5 câu từ các bài đã học. Câu nào không trả lời được thì về xem lại bài đó"]],
+    ex: "Mỗi người lập file Excel: thu, chi, quỹ phòng thân và số tiền được phép đầu tư",
+    src: ["Podcast Hieu.tv: các tập về quản lý tài chính cá nhân", "Đọc thêm: Tâm lý học về tiền, chương 7–9"] },
+  { n: 5, title: "Cổ phiếu là gì?",
+    items: [
+      ["m1", "Mua cổ phiếu là mua cái gì?", "Mua 100 cổ phiếu FPT nghĩa là bạn đang sở hữu cái gì?",
+        ["Ví dụ: hai bạn góp tiền mở quán trà sữa, mỗi người góp một nửa thì mỗi người làm chủ một nửa quán", "Công ty lớn chia mình thành rất nhiều phần nhỏ. Mỗi phần là một cổ phiếu", "Mua cổ phiếu là làm chủ một phần rất nhỏ của công ty đó"],
+        ["YouTube: tìm \"cổ phiếu là gì cho người mới\"", "Từ khóa: \"cổ phiếu là gì\""]],
+      ["m2", "Làm chủ thì được chia gì?", "Quán trà sữa lãi 10 triệu và quyết định chia hết cho chủ. Bạn góp một nửa vốn thì được bao nhiêu?",
+        ["Công ty có lãi có thể chia một phần cho các chủ (cổ đông). Phần chia này gọi là cổ tức", "Cổ tức có thể trả bằng tiền, hoặc bằng thêm cổ phiếu", "Công ty làm ăn tốt lên thì giá cổ phiếu thường tăng, bạn bán lại được giá cao hơn"],
+        ["Từ khóa: \"cổ tức là gì\""]],
+      ["m3", "Trái phiếu: cho vay thay vì làm chủ", "Mua trái phiếu là bạn đang làm chủ công ty hay đang cho công ty vay tiền?",
+        ["Trái phiếu là giấy vay nợ: bạn cho công ty hoặc Nhà nước vay tiền", "Bạn được trả lãi đều đặn và lấy lại tiền gốc khi đến hạn", "Thường an toàn hơn cổ phiếu nhưng lời ít hơn. Rủi ro là bên vay không trả được nợ"],
+        ["Từ khóa: \"trái phiếu là gì\"", "Từ khóa: \"cổ phiếu và trái phiếu khác nhau thế nào\""]],
+      ["m4", "Tiết kiệm, vàng, nhà đất, cổ phiếu khác nhau thế nào?", "Bạn cần tiền gấp trong 3 ngày. Kênh nào rút ra nhanh nhất, kênh nào chậm nhất?",
+        ["Gửi tiết kiệm: an toàn, lời ít, rút được", "Vàng: giữ giá khi giá cả tăng mạnh, nhưng tự nó không sinh ra tiền", "Nhà đất: cần nhiều tiền, bán chậm", "Cổ phiếu: ít tiền vẫn mua được, bán nhanh, nhưng giá lên xuống mạnh"],
+        ["Từ khóa: \"so sánh các kênh đầu tư cho người mới\""]],
+      ["m5", "\"Chợ\" cổ phiếu ở đâu?", "FPT và HPG đang được mua bán ở sàn nào?",
+        ["Cổ phiếu được mua bán ở sàn giao dịch, giống một cái chợ có luật lệ rõ ràng", "Việt Nam có 3 sàn: HOSE (TP.HCM, nhiều công ty lớn), HNX (Hà Nội) và UPCoM", "Bạn không vào sàn trực tiếp mà mua bán qua app của công ty chứng khoán"],
+        ["Tra mã FPT, HPG trên CafeF để xem sàn", "Website hsx.vn và hnx.vn"]],
+    ],
+    ex: "Mở tài khoản chứng khoán trên app (chưa nạp tiền), cùng nhau tìm mã FPT và xem giao diện",
+    src: ["Website Ủy ban Chứng khoán Nhà nước (ssc.gov.vn)", "Đọc thêm: Tâm lý học về tiền, chương 10–12"] },
+  { n: 6, title: "Đọc bảng giá và mua bán",
+    items: [
+      ["m1", "Giá trần, giá sàn, giá tham chiếu là gì?", "Hôm qua một mã trên HOSE đóng cửa ở 100.000đ. Hôm nay giá cao nhất và thấp nhất được phép là bao nhiêu?",
+        ["Giá tham chiếu: thường là giá cuối ngày hôm trước, làm mốc để so", "Mỗi ngày giá chỉ được lên xuống trong một khoảng. Trên HOSE là 7%", "Giá trần là mức cao nhất được phép, giá sàn là mức thấp nhất. Tham chiếu 100.000đ thì trần 107.000đ, sàn 93.000đ"],
+        ["Từ khóa: \"giá trần giá sàn giá tham chiếu là gì\""]],
+      ["m2", "Bảng giá nhiều màu nghĩa là gì?", "Một mã đang hiện màu tím. Điều đó nghĩa là gì?",
+        ["Vàng: đứng giá, bằng giá tham chiếu", "Xanh lá: tăng. Đỏ: giảm", "Tím: tăng kịch trần. Xanh lơ: giảm kịch sàn"],
+        ["Mở bảng giá trong app và đối chiếu", "Từ khóa: \"cách đọc bảng giá chứng khoán\""]],
+      ["m3", "Đặt mua thế nào?", "Bạn đặt mua giá 50.000đ nhưng người bán chỉ chịu bán 52.000đ. Bạn có mua được không?",
+        ["Giống đi chợ trả giá: bạn nói muốn mua bao nhiêu cổ phiếu, ở giá bao nhiêu", "Có người chịu bán ở giá đó hoặc rẻ hơn thì mua được (gọi là khớp lệnh)", "Chưa ai bán thì lệnh nằm chờ đến hết ngày. Loại lệnh này gọi là lệnh LO, dùng nhiều nhất", "Thường mua theo lô, mỗi lô 100 cổ phiếu"],
+        ["Từ khóa: \"cách đặt lệnh mua cổ phiếu cho người mới\""]],
+      ["m4", "Lệnh đầu phiên và cuối phiên", "Muốn mua đúng giá mở cửa đầu ngày thì bạn dùng lệnh gì?",
+        ["Đầu ngày và cuối ngày có một phiên ngắn để chốt giá mở cửa và giá đóng cửa", "Lệnh ATO: mua bán ở giá mở cửa. Lệnh ATC: mua bán ở giá đóng cửa", "Người mới chỉ cần biết hai lệnh này có tồn tại, chưa cần dùng"],
+        ["Từ khóa: \"lệnh ATO ATC là gì\""]],
+      ["m5", "Mua bán mất phí gì, bao lâu tiền về?", "Mua 10 triệu, vài hôm sau bán được 11 triệu. Bạn có lời trọn 1 triệu không? Vì sao?",
+        ["Mỗi lần mua hoặc bán đều mất phí cho công ty chứng khoán", "Khi bán còn mất thêm thuế 0,1% số tiền bán", "Mua xong phải chờ vài ngày cổ phiếu mới về tài khoản, bán xong cũng chờ vài ngày tiền mới về. Xem quy định hiện hành"],
+        ["Biểu phí trên website công ty chứng khoán bạn mở tài khoản"]],
+    ],
+    extras: [TRY],
+    ex: "Chụp bảng giá lúc 10 giờ sáng, mỗi người giải thích 3 dòng: màu gì, nghĩa là gì",
+    src: ["Bảng giá trong app công ty chứng khoán", "Quy định giao dịch hiện hành trên hsx.vn", "Đọc thêm: Tâm lý học về tiền, chương 13–15"] },
+  { n: 7, title: "Đọc \"sổ thu chi\" của công ty",
+    items: [
+      ["m1", "Báo cáo tài chính là gì, tìm ở đâu?", "Báo cáo tài chính giống thứ gì trong cuộc sống của bạn?",
+        ["Giống sổ thu chi của một quán: bán được bao nhiêu, chi bao nhiêu, còn lời bao nhiêu", "Công ty niêm yết phải công bố mỗi quý và mỗi năm", "Tìm trên CafeF hoặc Vietstock: gõ mã công ty, vào mục Tài chính"],
+        ["CafeF: gõ mã FPT, vào mục Tài chính"]],
+      ["m2", "Công ty bán được bao nhiêu?", "Doanh thu năm gần nhất của FPT là bao nhiêu? So với năm trước tăng hay giảm?",
+        ["Doanh thu là tổng tiền công ty thu về từ bán hàng, làm dịch vụ", "Quán trà sữa bán 1.000 ly, mỗi ly 30.000đ thì doanh thu là 30 triệu", "So với năm trước để biết công ty đang lớn lên hay nhỏ đi"],
+        ["Báo cáo kết quả kinh doanh của FPT, dòng \"Doanh thu thuần\""]],
+      ["m3", "Trừ hết chi phí còn lãi bao nhiêu?", "Doanh thu cao có chắc là công ty lãi nhiều không?",
+        ["Lấy doanh thu trừ tiền nguyên liệu, tiền thuê nhà, lương nhân viên, lãi vay, thuế...", "Phần còn lại là lợi nhuận sau thuế, tức tiền lời thật sự", "Quán bán được 30 triệu nhưng chi hết 28 triệu thì chỉ lời 2 triệu"],
+        ["Báo cáo kết quả kinh doanh, dòng \"Lợi nhuận sau thuế\""]],
+      ["m4", "Công ty có gì và đang nợ bao nhiêu?", "Quán có tài sản 100 triệu, trong đó 40 triệu là vay ngân hàng. Phần thật sự của chủ quán là bao nhiêu?",
+        ["Tài sản: những gì công ty đang có, như tiền, hàng hóa, nhà xưởng", "Tài sản có được là nhờ đi vay (nợ) hoặc tiền của chủ (vốn chủ sở hữu)", "Tài sản = Nợ + Vốn chủ sở hữu. Nợ quá nhiều so với vốn chủ là dấu hiệu cần cẩn thận"],
+        ["Bảng cân đối kế toán của FPT trên CafeF"]],
+    ],
+    extras: [TRY],
+    ex: "Lấy báo cáo năm gần nhất của FPT, điền 4 con số: doanh thu, lợi nhuận sau thuế, tổng tài sản, nợ",
+    src: ["Báo cáo tài chính FPT trên CafeF hoặc Vietstock", "Đọc thêm: Tâm lý học về tiền, chương 16–18"] },
+  { n: 8, title: "Cổ phiếu đắt hay rẻ?",
+    items: [
+      ["m1", "Có lãi mà vẫn hết tiền?", "Quán bán chịu cho khách 20 triệu, sổ ghi có lãi nhưng trong két không có tiền. Vì sao?",
+        ["Bán chịu: đã tính là bán được, có lãi trên sổ, nhưng chưa thu được tiền", "Công ty cũng vậy: lãi trên sổ chưa chắc đã có tiền thật", "Vì vậy cần xem thêm báo cáo dòng tiền: tiền thật sự chảy vào và chảy ra bao nhiêu"],
+        ["Từ khóa: \"báo cáo lưu chuyển tiền tệ giải thích đơn giản\""]],
+      ["m2", "Mỗi cổ phiếu \"làm ra\" bao nhiêu tiền?", "Công ty lãi 10 tỷ, có 1 triệu cổ phiếu. Mỗi cổ phiếu \"làm ra\" bao nhiêu?",
+        ["Lấy lợi nhuận sau thuế chia cho số cổ phiếu. Con số này gọi là EPS", "Lãi 10 tỷ, 1 triệu cổ phiếu thì mỗi cổ phiếu làm ra 10.000đ mỗi năm", "EPS tăng đều qua các năm là dấu hiệu tốt"],
+        ["Trang mã cổ phiếu trên CafeF thường có sẵn EPS"]],
+      ["m3", "Bỏ bao nhiêu đồng để mua 1 đồng lãi?", "Cổ phiếu giá 150.000đ, mỗi năm làm ra 10.000đ. Bạn đang trả bao nhiêu đồng cho 1 đồng lãi?",
+        ["Lấy giá cổ phiếu chia cho EPS. Con số này gọi là P/E", "Giá 150.000đ, EPS 10.000đ thì P/E = 15: bỏ 15 đồng để mua 1 đồng lãi mỗi năm", "P/E thấp chưa chắc là rẻ. Chỉ nên so giữa các công ty cùng ngành"],
+        ["Từ khóa: \"chỉ số P/E là gì cho người mới\""]],
+      ["m4", "Có lãi mà giá vẫn giảm?", "Công ty báo lãi tăng 10% nhưng mọi người đang chờ tăng 30%. Giá cổ phiếu có thể phản ứng thế nào?",
+        ["Giá cổ phiếu hôm nay đã tính sẵn những gì mọi người đang chờ đợi", "Kết quả tốt nhưng kém hơn kỳ vọng thì giá vẫn có thể giảm", "Giá còn bị ảnh hưởng bởi lãi suất, tâm lý đám đông và tin tức chung"],
+        ["Đọc tin kết quả kinh doanh trên CafeF, xem giá cổ phiếu hôm đó thay đổi thế nào"]],
+    ],
+    extras: [TRY],
+    ex: "So sánh FPT và HPG: lợi nhuận, EPS, P/E. Mỗi người chọn bảo vệ một mã, người kia hỏi vặn",
+    src: ["Trang mã cổ phiếu trên CafeF hoặc Vietstock", "Đọc thêm: Tâm lý học về tiền, chương 19–20"] },
+  { n: 9, title: "Giữ tiền an toàn trước khi bỏ tiền thật",
+    items: [
+      ["m1", "Đừng bỏ hết trứng vào một giỏ", "Có 10 triệu, bạn chia thế nào để lỡ một mã giảm mạnh cũng không mất quá nhiều?",
+        ["Không dồn hết tiền vào một mã: mã đó gặp chuyện là mất nặng", "Gợi ý: mỗi mã tối đa khoảng 1/5 số tiền đầu tư", "Người mới có thể mua quỹ ETF: mua một lần là sở hữu cả rổ nhiều cổ phiếu"],
+        ["Từ khóa: \"đa dạng hóa đầu tư là gì\"", "Từ khóa: \"quỹ ETF là gì\""]],
+      ["m2", "Định trước: giảm bao nhiêu thì bán", "Bạn mua giá 50.000đ và đặt giới hạn lỗ 10%. Giá xuống bao nhiêu thì bạn bán?",
+        ["Trước khi mua, viết ra giấy: giá giảm bao nhiêu % thì mình bán, không chờ gỡ", "Mua 50.000đ, giới hạn lỗ 10% thì bán khi giá về 45.000đ", "Quyết định lúc bình tĩnh luôn tốt hơn quyết định lúc đang hoảng"],
+        ["Từ khóa: \"cắt lỗ là gì\""]],
+      ["m3", "Khi cả thị trường đỏ rực thì làm gì?", "Cả bảng giá đỏ, bạn bè rủ \"bán hết đi\". Bạn sẽ làm gì đầu tiên?",
+        ["Đừng hoảng mà bán tháo theo đám đông", "Đừng vay thêm tiền để \"bắt đáy\"", "Đọc lại tờ giấy đã viết lúc mua và làm đúng như đã định"],
+        ["Từ khóa: \"tâm lý khi thị trường giảm mạnh\""]],
+      ["m4", "Sổ tay đầu tư", "Lần chơi thử gần nhất, bạn mua vì lý do gì và lúc đó cảm thấy thế nào?",
+        ["Mỗi lần mua bán (kể cả chơi thử), ghi 3 dòng: mua gì, vì sao, lúc đó cảm thấy thế nào", "Vài tháng sau đọc lại sẽ thấy mình hay sai ở đâu: mua vì tham, bán vì sợ...", "Ghi bằng sổ tay hay Google Sheets đều được"],
+        ["Từ khóa: \"nhật ký đầu tư\""]],
+      ["m5", "Tự viết 5 luật của riêng mình", "Đọc cho người kia nghe 5 luật của bạn. Luật nào khó giữ nhất?",
+        ["Viết ra 5 điều mình luôn làm hoặc không bao giờ làm khi đầu tư", "Ví dụ: không mua theo lời người lạ trong nhóm Zalo, không vay tiền để đầu tư, không bỏ quá 1/5 tiền vào một mã", "Ai hứa lời chắc chắn, lời cao thì gần như chắc chắn là lừa đảo"],
+        ["Từ khóa: \"cảnh báo lừa đảo chứng khoán\""]],
+    ],
+    extras: [TRY],
+    exTitle: "Bài cuối: Nếu có 100 triệu, bạn chia thế nào?",
+    ex: "Mỗi người viết 1 trang: cất bao nhiêu vào tiết kiệm, mua 3–5 mã nào, mỗi mã bao nhiêu tiền, vì sao. Trình bày 10 phút, người kia hỏi 3 câu. Cả hai trả lời được thì mới dùng quỹ để mua thật lần đầu",
+    src: ["Sổ tay hoặc file ghi chép riêng của mỗi người", "Đọc lại: Tâm lý học về tiền"] },
+];
+
+// Lộ trình Nâng cao (học sau phần Cơ bản): nội dung chi tiết hơn, nhiều thuật ngữ hơn.
+// Mỗi bài: [mã, tên bài, câu tự kiểm tra, [học về gì...], [tìm ở đâu...]]
+const ADV = [
   { n: 1, title: "Tiền là gì?",
     items: [
       ["m1", "Tiền dùng để làm gì: trao đổi, đo giá trị, cất giữ", "Kể 3 việc tiền làm được, mỗi việc một ví dụ.",
@@ -651,10 +860,11 @@ const PHASES = [
     src: ["Website các quỹ ETF đang niêm yết trên HOSE"] },
 ];
 const TUE = 4; // số bài học thứ 3
-for (const p of PHASES) {
-  p.id = "w" + p.n;
-  p.all = [...p.items.map(([k]) => k), "bt"];
-}
+const PHASES = [
+  ...BASIC.map(p => ({ ...p, track: "basic", id: "w" + p.n })),
+  ...ADV.map(p => ({ ...p, track: "adv", id: "a" + p.n })),
+];
+for (const p of PHASES) p.all = [...p.items.map(([k]) => k), ...(p.extras || []).map(([k]) => k), "bt"];
 const FINES = [
   ["Trễ giờ", 50000, "Buổi thứ 5 hoặc cuối tuần"],
   ["Không chuẩn bị bài", 100000, "Không xong tự học thứ 3, bù trong 24h"],
@@ -757,7 +967,7 @@ function currentWeek() {
 
 /* ---------- Build once ---------- */
 function buildPhases() {
-  const root = $("phases");
+  const root = $("lo-trinh");
   for (const p of PHASES) {
     const el = document.createElement("details");
     el.className = "card phase"; el.id = p.id;
@@ -783,7 +993,8 @@ function buildPhases() {
                 </div>
               </details>
             </li>`).join("")}
-              <li class="ex">${box("bt", `<span class="lt"><span class="dt d5">T5</span>Bài tập tuần</span><span class="q">${p.ex}</span>`)}</li>
+              ${[...(p.extras || []), ["bt", p.exTitle || "Bài tập tuần", p.ex]].map(([k, t, d]) =>
+                `<li class="ex">${box(k, `<span class="lt"><span class="dt d5">T5</span>${t}</span><span class="q">${d}</span>`)}</li>`).join("")}
             </ul>
           </div>
           <div class="aside">
@@ -799,15 +1010,48 @@ function buildPhases() {
         <label class="field ph-foot"><span>Ghi chú tuần này</span>
           <textarea id="n-${p.id}" data-note="${p.id}" rows="2" maxlength="1000" placeholder="Ví dụ: bài 3 còn chưa rõ, hỏi lại thứ 5"></textarea></label>
       </div>`;
-    root.appendChild(el);
+    $(p.track === "basic" ? "phases" : "phases-adv").appendChild(el);
   }
   root.addEventListener("change", e => {
     const t = e.target;
     if (t.dataset.item) {
-      const p = PHASES.find(x => x.id === t.dataset.phase), it = p.items.find(x => x[0] === t.dataset.item);
-      op({ type: "check", phase: p.id, item: t.dataset.item, on: t.checked, title: `Tuần ${p.n} · ${it ? it[1] : "Bài tập tuần"}` });
+      const p = PHASES.find(x => x.id === t.dataset.phase), it = [...p.items, ...(p.extras || [])].find(x => x[0] === t.dataset.item);
+      op({ type: "check", phase: p.id, item: t.dataset.item, on: t.checked, title: `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · ${it ? it[1] : p.exTitle || "Bài tập tuần"}` });
     }
     else if (t.dataset.note) op({ type: "note", phase: t.dataset.note, value: t.value });
+  });
+}
+
+function buildTabs() {
+  const show = track => {
+    for (const t of ["basic", "adv"]) {
+      $("track-" + t).hidden = t !== track;
+      $("tab-" + t).setAttribute("aria-selected", String(t === track));
+    }
+    try { localStorage.setItem("ck8-tab", track); } catch (e) {}
+  };
+  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => show(b.dataset.track)));
+  let saved = "basic";
+  try { saved = localStorage.getItem("ck8-tab") || "basic"; } catch (e) {}
+  show(saved === "adv" ? "adv" : "basic");
+}
+
+// Bốc ngẫu nhiên một câu tự kiểm tra trong các bài đã tick (cả hai lộ trình).
+function buildQuiz() {
+  let last = "";
+  $("quiz-btn").addEventListener("click", () => {
+    const pool = [];
+    for (const p of PHASES) for (const [k, t, q] of p.items) if (checkedOf(p.id)[k]) pool.push({ q, from: `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · ${t}` });
+    if (!pool.length) {
+      $("quiz-q").textContent = "Chưa có bài nào được tick. Học và tick vài bài trước, rồi quay lại bốc câu hỏi nhé.";
+      $("quiz-from").textContent = "";
+      return;
+    }
+    let pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pool.length > 1) while (pick.q === last) pick = pool[Math.floor(Math.random() * pool.length)];
+    last = pick.q;
+    $("quiz-q").textContent = pick.q;
+    $("quiz-from").textContent = "Từ bài: " + pick.from;
   });
 }
 
@@ -863,9 +1107,9 @@ function render() {
   const wk = currentWeek(), today = todayISO(), dow = new Date().getDay();
   if (wk === null) { $("k-week").textContent = "Chưa bắt đầu"; $("k-week-sub").textContent = "Đặt ngày bắt đầu trong phần Cài đặt"; }
   else if (wk === 0) { $("k-week").textContent = "Sắp bắt đầu"; $("k-week-sub").textContent = `Còn ${dayNum(m.start) - dayNum(today)} ngày, bắt đầu ${viDate(m.start)}`; }
-  else if (wk > 9) { $("k-week").textContent = "Hết chu kỳ"; $("k-week-sub").textContent = "Đã hoàn thành 8 tuần"; }
-  else { $("k-week").textContent = wk === 9 ? "Tuần 9 · bổ sung" : `Tuần ${wk} / 8`; $("k-week-sub").textContent = `Bắt đầu ${viDate(m.start)}`; }
-  $("weekdots").innerHTML = Array.from({ length: 8 }, (_, i) => `<i class="${wk && i + 1 < wk ? "past" : wk === i + 1 ? "now" : ""}"></i>`).join("");
+  else if (wk > 9) { $("k-week").textContent = "Hết chu kỳ"; $("k-week-sub").textContent = "Đã hoàn thành 9 tuần"; }
+  else { $("k-week").textContent = `Tuần ${wk} / 9`; $("k-week-sub").textContent = `Bắt đầu ${viDate(m.start)}`; }
+  $("weekdots").innerHTML = Array.from({ length: 9 }, (_, i) => `<i class="${wk && i + 1 < wk ? "past" : wk === i + 1 ? "now" : ""}"></i>`).join("");
   document.querySelectorAll("#week .day").forEach(d => d.classList.toggle("today", Number(d.dataset.dow) === dow));
 
   let nextTxt = "—", nextSub = "";
@@ -889,12 +1133,12 @@ function render() {
     el.querySelector("[data-bar]").style.width = (n / all * 100) + "%";
     const [cls, txt] = n === all ? ["done", "Đã xong"] : n ? ["doing", "Đang học"] : ["todo", "Chưa học"];
     const st = el.querySelector("[data-status]"); st.className = "pill " + cls; st.textContent = txt;
-    const isNow = wk === p.n;
+    const basic = p.track === "basic", isNow = basic && wk === p.n;
     el.classList.toggle("current", isNow);
     el.querySelector(".pill.now").hidden = !isNow;
-    if (firstRender) el.open = isNow || (!wk && p.n === 1);
+    if (firstRender) el.open = isNow || (basic && !wk && p.n === 1);
     setVal($("n-" + p.id), (m.notes && m.notes[p.id]) || "");
-    doneAll += n; totalAll += all;
+    if (basic) { doneAll += n; totalAll += all; }
   }
   $("k-done").textContent = doneAll;
   $("k-total").textContent = totalAll;
@@ -928,7 +1172,7 @@ function render() {
   }
 
   const tb = $("fines");
-  if (!fines.length) tb.innerHTML = `<tr><td colspan="6" class="empty">Chưa có lỗi nào. Giữ được như vậy đến hết 8 tuần nhé.</td></tr>`;
+  if (!fines.length) tb.innerHTML = `<tr><td colspan="6" class="empty">Chưa có lỗi nào. Giữ được như vậy đến hết lộ trình nhé.</td></tr>`;
   else {
     tb.innerHTML = fines.map(f => `<tr>
       <td class="date">${viDate(f.date)}</td><td data-who></td><td data-type></td>
@@ -947,11 +1191,13 @@ function celebrate(before) {
   if (state.v < 0 || firstRender) return;
   for (const id of phaseDone()) if (!before.includes(id)) {
     const p = PHASES.find(x => x.id === id);
-    toast(`Xong tuần ${p.n}: ${p.title}`);
+    toast(`Xong tuần ${p.n}${p.track === "adv" ? " (Nâng cao)" : ""}: ${p.title}`);
   }
 }
 
 buildPhases();
+buildTabs();
+buildQuiz();
 buildFund();
 buildSettings();
 render();
