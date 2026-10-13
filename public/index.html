@@ -240,6 +240,8 @@ button.del { padding: 4px 10px; font-size: 12.5px; color: var(--muted); }
 button.del.armed { background: var(--down); border-color: var(--down); color: var(--on-accent); }
 .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
 
+.login { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter: blur(6px); }
+.login form { width: min(380px, 100%); padding: 28px; display: grid; gap: 12px; }
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; z-index: 20;
   background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 500; max-width: calc(100% - 32px);
@@ -407,8 +409,19 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 
 <footer>Ghi chép trên Notion, tiến độ và quỹ phạt trên trang này, họp qua Discord.</footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="login" id="login" hidden>
+  <form class="card" id="loginForm">
+    <h2>Chào hai bạn</h2>
+    <p class="muted" id="login-msg">Nhập mật khẩu chung của hai bạn.</p>
+    <input type="password" id="pw" required autocomplete="current-password" aria-label="Mật khẩu">
+    <button type="submit" class="primary">Vào học</button>
+  </form>
+</div>
 
 <script>
+// Link Web App của Google Apps Script (Deploy → Web app), dạng https://script.google.com/macros/s/.../exec
+const API_URL = "DÁN_LINK_APPS_SCRIPT_VÀO_ĐÂY";
+
 // Mỗi tuần: các bài nhỏ (~15 phút/bài) + 1 bài tập chung.
 // Mỗi bài: [mã, tên bài, câu tự kiểm tra, [học về gì...], [tìm ở đâu...]]
 // 4 bài đầu học thứ 3, phần còn lại học cùng nhau thứ 5.
@@ -663,34 +676,64 @@ let state = { v: -1, main: {}, fines: [] };
 const nameOf = w => (state.main.names && state.main.names[w]) || (w === "A" ? "Người A" : "Người B");
 const fineAmt = f => f.type === PASS ? 0 : (f.amount || 0);
 
-/* ---------- API ---------- */
+/* ---------- API (Google Apps Script) ---------- */
+const PW_KEY = "ck8-pw";
+let pw = "";
+try { pw = localStorage.getItem(PW_KEY) || ""; } catch (e) {}
+
+// Không đặt Content-Type: gửi dạng text/plain để trình duyệt không cần hỏi trước (CORS preflight), Apps Script mới nhận được.
+async function call(o) {
+  const r = await fetch(API_URL, { method: "POST", body: JSON.stringify({ pw, op: o }) });
+  const data = await r.json();
+  if (data.auth === false) { showLogin(data.error); throw new Error("auth"); }
+  return data;
+}
 let busy = Promise.resolve();
+const queue = fn => (busy = busy.then(fn));
 function op(o) {
-  busy = busy.then(async () => {
+  return queue(async () => {
+    setSync("", "Đang lưu…");
     try {
-      const r = await fetch("/api/op", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) });
-      const data = await r.json();
-      if (!r.ok) toast(data.error || "Chưa lưu được", true);
+      const data = await call(o);
+      if (data.error) toast(data.error, true);
       if (data.main) setState(data);
-      setSync("ok", "Đã đồng bộ");
+      setSync("ok", "Đã lưu");
     } catch (e) {
-      toast("Mất kết nối, chưa lưu được thay đổi", true);
-      setSync("err", "Mất kết nối");
-      poll();
+      if (e.message !== "auth") { toast("Mất kết nối, chưa lưu được thay đổi", true); setSync("err", "Mất kết nối"); }
     }
   });
-  return busy;
 }
-async function poll() {
-  if (document.visibilityState !== "visible") return;
-  try {
-    const r = await fetch("/api/state");
-    if (!r.ok) throw new Error();
-    const data = await r.json();
-    setSync("ok", "Đã đồng bộ");
-    if (data.v !== state.v) setState(data);
-  } catch (e) { setSync("err", "Mất kết nối"); }
+// ponytail: hỏi số phiên bản mỗi 10 giây; sửa tay trong Sheet thì cần F5 mới thấy.
+function poll() {
+  if (document.visibilityState !== "visible" || !pw) return;
+  queue(async () => {
+    try {
+      const { v } = await call({ type: "v" });
+      if (v !== state.v) setState(await call({ type: "state" }));
+      setSync("ok", "Đã đồng bộ");
+    } catch (e) { if (e.message !== "auth") setSync("err", "Mất kết nối"); }
+  });
 }
+function load() {
+  setSync("", "Đang tải…");
+  queue(async () => {
+    try { state = await call({ type: "state" }); firstRender = true; render(); setSync("ok", "Đã đồng bộ"); }
+    catch (e) { if (e.message !== "auth") setSync("err", "Không kết nối được Google Sheet"); }
+  });
+}
+function showLogin(msg) {
+  $("login").hidden = false;
+  $("login-msg").textContent = msg && msg !== "Sai mật khẩu" ? msg : msg ? "Sai mật khẩu, nhập lại nhé." : "Nhập mật khẩu chung của hai bạn.";
+  setSync("err", "Chưa đăng nhập");
+  setTimeout(() => $("pw").focus(), 50);
+}
+$("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  pw = $("pw").value;
+  try { localStorage.setItem(PW_KEY, pw); } catch (err) {}
+  $("login").hidden = true;
+  load();
+});
 function setState(s) { const before = phaseDone(); state = s; render(); celebrate(before); }
 function setSync(cls, text) { const s = $("sync"); s.className = "sync " + cls; s.textContent = text; }
 let tt;
@@ -759,7 +802,10 @@ function buildPhases() {
   }
   root.addEventListener("change", e => {
     const t = e.target;
-    if (t.dataset.item) op({ type: "check", phase: t.dataset.phase, item: t.dataset.item, on: t.checked });
+    if (t.dataset.item) {
+      const p = PHASES.find(x => x.id === t.dataset.phase), it = p.items.find(x => x[0] === t.dataset.item);
+      op({ type: "check", phase: p.id, item: t.dataset.item, on: t.checked, title: `Tuần ${p.n} · ${it ? it[1] : "Bài tập tuần"}` });
+    }
     else if (t.dataset.note) op({ type: "note", phase: t.dataset.note, value: t.value });
   });
 }
@@ -831,7 +877,7 @@ function render() {
   } else if (wk === null) nextSub = "Cần ngày bắt đầu";
   $("k-next").textContent = nextTxt; $("k-next-sub").textContent = nextSub;
 
-  if (firstRender && !m.start) $("settings").open = true;
+  if (firstRender) $("settings").open = !m.start;
 
   // Giai đoạn
   let doneAll = 0, totalAll = 0;
@@ -907,9 +953,11 @@ function celebrate(before) {
 buildPhases();
 buildFund();
 buildSettings();
-fetch("/api/state").then(r => r.json()).then(s => { state = s; render(); setSync("ok", "Đã đồng bộ"); })
-  .catch(() => { render(); setSync("err", "Không kết nối được server"); });
-setInterval(poll, 5000);
+render();
+if (API_URL.includes("DÁN_LINK")) setSync("err", "Chưa dán link Apps Script vào API_URL");
+else if (!pw) showLogin();
+else load();
+setInterval(poll, 10000);
 document.addEventListener("visibilitychange", poll);
 </script>
 </body>

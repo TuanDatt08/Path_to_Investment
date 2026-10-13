@@ -1,81 +1,93 @@
 # VN-HỌC: Lộ trình Chứng khoán 8 Tuần
 
-Web app cho 2 người cùng theo dõi lộ trình học: checklist từng giai đoạn, lịch tuần và sổ quỹ phạt.
+Web app cho 2 người cùng theo dõi lộ trình học: checklist từng bài nhỏ, lịch tuần và sổ quỹ phạt.
 
-- Không cần cài thư viện, chỉ cần **Node.js 18 trở lên**.
-- Dữ liệu lưu trong `data/data.json`.
-- Có mật khẩu chung (biến `APP_PASSWORD`). Trình duyệt sẽ hỏi mật khẩu khi mở trang; ô tên đăng nhập gõ gì cũng được.
+```
+Trang web (Netlify)  ──►  Google Apps Script  ──►  Google Sheet
+public/index.html         apps-script/Code.gs      4 tab: Cài đặt, Tiến độ, Ghi chú, Quỹ phạt
+```
+
+- Miễn phí, không cần máy chủ riêng.
+- Mở Google Sheet là thấy dữ liệu dạng bảng. Google tự lưu lịch sử phiên bản (File → Lịch sử phiên bản).
+- Mật khẩu chung đặt trong Apps Script. Trang web hỏi mật khẩu một lần rồi nhớ trong trình duyệt.
 
 ```
 ck8/
-├── server.js          # server + API, lưu file JSON
-├── public/index.html  # toàn bộ giao diện
-├── test.js            # kiểm tra nhanh: npm test
-└── package.json
+├── public/index.html     # toàn bộ giao diện (Netlify phục vụ thư mục này)
+├── apps-script/Code.gs   # code dán vào Google Apps Script
+├── test.js               # kiểm tra Code.gs trên máy: npm test
+└── netlify.toml
 ```
 
-## Chạy trên máy
+## Cài đặt (làm một lần)
 
-```bash
-cd ck8
-npm start                         # http://localhost:3000, không có mật khẩu
+### 1. Tạo Google Sheet
+
+Vào https://sheets.new, đặt tên file, ví dụ "Lộ trình chứng khoán". Không cần tạo tab nào, script sẽ tự tạo.
+
+### 2. Dán code Apps Script
+
+1. Trong Sheet: **Tiện ích mở rộng → Apps Script** (Extensions → Apps Script).
+2. Xóa hết code mẫu trong `Code.gs`, dán toàn bộ nội dung file `apps-script/Code.gs` vào, bấm **Lưu** (Ctrl + S).
+
+### 3. Đặt mật khẩu
+
+Trong Apps Script: biểu tượng bánh răng **Cài đặt dự án (Project Settings)** → kéo xuống **Thuộc tính tập lệnh (Script properties)** → **Thêm thuộc tính**:
+
+| Thuộc tính | Giá trị |
+|---|---|
+| `APP_PASSWORD` | mật khẩu chung của hai bạn |
+
+Chưa đặt mật khẩu thì script từ chối mọi yêu cầu.
+
+### 4. Deploy thành Web App
+
+1. Bấm **Triển khai (Deploy) → Tùy chọn triển khai mới (New deployment)**.
+2. Bánh răng cạnh "Chọn loại" → **Ứng dụng web (Web app)**.
+3. **Thực thi dưới dạng (Execute as):** Tôi (Me).
+   **Người có quyền truy cập (Who has access):** Bất kỳ ai (Anyone).
+4. Bấm **Triển khai**, rồi **Cấp quyền truy cập**, chọn tài khoản Google của bạn.
+   Google sẽ báo "Google chưa xác minh ứng dụng này". Đây là bình thường vì script do chính bạn viết: bấm **Nâng cao → Đi tới ... (không an toàn)** → **Cho phép**.
+5. Copy **URL ứng dụng web**, dạng `https://script.google.com/macros/s/.../exec`.
+
+"Bất kỳ ai" nghĩa là trang web gọi được script mà không cần đăng nhập Google. Dữ liệu vẫn được bảo vệ bằng `APP_PASSWORD`.
+
+### 5. Dán link vào trang web
+
+Mở `public/index.html`, tìm dòng:
+
+```js
+const API_URL = "DÁN_LINK_APPS_SCRIPT_VÀO_ĐÂY";
 ```
 
-Đặt mật khẩu (PowerShell):
+Thay bằng link vừa copy, rồi đẩy lên GitHub:
 
-```powershell
-$env:APP_PASSWORD="mat-khau-chung"; npm start
+```
+git add .
+git commit -m "Chuyển sang Google Sheets"
+git push
 ```
 
-Kiểm tra code: `npm test`.
+### 6. Đưa trang lên Netlify
 
-## Biến môi trường
+1. Vào https://app.netlify.com → **Add new site → Import an existing project → GitHub** → chọn repo.
+2. Netlify tự đọc `netlify.toml` (thư mục xuất bản `public`, không có lệnh build). Bấm **Deploy**.
+3. Bạn sẽ có link dạng `ten-gi-do.netlify.app`. Đổi tên ở **Site configuration → Change site name** nếu muốn.
 
-| Biến | Mặc định | Ý nghĩa |
-|---|---|---|
-| `PORT` | `3000` | Cổng server. Hầu hết nền tảng hosting tự đặt biến này. |
-| `APP_PASSWORD` | trống | Mật khẩu chung. **Bắt buộc đặt khi đưa lên internet.** |
-| `DATA_DIR` | `./data` | Thư mục chứa `data.json`. Trên hosting phải trỏ vào ổ lưu trữ bền (volume). |
+Gửi link và mật khẩu cho bạn của bạn là xong.
 
-## Deploy
+## Sửa code về sau
 
-Điểm quan trọng nhất: **dữ liệu nằm trong một file, nên nơi deploy phải có ổ đĩa không bị xóa khi khởi động lại.** Các gói miễn phí kiểu Render Free có ổ đĩa tạm: mỗi lần redeploy hoặc server ngủ dậy, toàn bộ tick và tiền phạt sẽ mất.
+- **Sửa giao diện** (`public/index.html`): `git push` là Netlify tự cập nhật.
+- **Sửa `Code.gs`:** dán code mới vào Apps Script, rồi **Triển khai → Quản lý các bản triển khai → biểu tượng bút chì → Phiên bản: Phiên bản mới → Triển khai**.
+  Phải làm đúng cách này thì link `/exec` mới giữ nguyên. Tạo "New deployment" sẽ ra link mới, khi đó phải dán lại vào `API_URL`.
 
-### Cách 1: Railway (dễ nhất, có volume)
+Kiểm tra `Code.gs` trên máy trước khi dán: `npm test`.
 
-Kiểm tra giá trên trang Railway trước khi dùng. Thường có gói dùng thử, sau đó tính phí theo tháng.
+## Lưu ý
 
-1. Đẩy thư mục `ck8` lên một repo GitHub (để private cũng được).
-2. Railway → **New Project** → **Deploy from GitHub repo** → chọn repo. Railway tự nhận diện Node và chạy `npm start`.
-3. Tab **Variables**: thêm `APP_PASSWORD=<mật khẩu>` và `DATA_DIR=/data`.
-4. Chuột phải vào service → **Attach Volume**, mount path `/data`.
-5. **Settings → Networking → Generate Domain** để có link dạng `xxx.up.railway.app`. Gửi link và mật khẩu cho bạn của bạn.
-
-### Cách 2: Chạy trên máy mình + Cloudflare Tunnel (miễn phí)
-
-Máy phải bật thì bạn của bạn mới vào được.
-
-1. Cài `cloudflared`: `winget install Cloudflare.cloudflared`
-2. Chạy app: `$env:APP_PASSWORD="mat-khau-chung"; npm start`
-3. Mở một terminal khác: `cloudflared tunnel --url http://localhost:3000`
-4. Copy link `https://....trycloudflare.com` hiện ra và gửi cho bạn của bạn.
-
-Link này đổi mỗi lần chạy lại `cloudflared`. Muốn link cố định thì tạo named tunnel với tài khoản Cloudflare và một tên miền.
-
-### Cách 3: VPS (Oracle Cloud Free Tier, DigitalOcean, ...)
-
-```bash
-git clone <repo> && cd ck8
-APP_PASSWORD=mat-khau-chung PORT=3000 node server.js
-```
-
-Để server tự chạy lại khi reboot, dùng `systemd` hoặc `pm2` (`npm i -g pm2 && APP_PASSWORD=... pm2 start server.js && pm2 save && pm2 startup`). Nên đặt Caddy hoặc Nginx phía trước để có HTTPS. Basic auth qua HTTP thường sẽ gửi mật khẩu dạng gần như văn bản thuần.
-
-## Sao lưu
-
-Toàn bộ dữ liệu là file `DATA_DIR/data.json`. Thỉnh thoảng copy file này ra ngoài là đủ.
-
-## Giới hạn
-
-- Thiết kế cho 2 người và 1 server. Chạy nhiều bản cùng lúc sẽ ghi đè dữ liệu của nhau.
-- Hai máy đồng bộ bằng cách tải lại dữ liệu mỗi 5 giây, nên thay đổi của người kia có thể hiện chậm vài giây.
+- **Đừng sửa cấu trúc Sheet:** không xóa hay đổi tên tab, không xóa hay đổi thứ tự cột, không đổi cột `Khóa`, `ID`. Xem và lọc thoải mái. Sửa tay nội dung (ví dụ gõ lại tên) thì trang web cần F5 mới thấy.
+- **Tốc độ:** mỗi thao tác mất khoảng 1–2 giây để lưu. Góc trên phải hiện "Đang lưu…" rồi "Đã lưu".
+- **Đồng bộ:** trang hỏi Sheet mỗi 10 giây, nên thay đổi của người kia hiện ra sau vài giây.
+- **Giới hạn của Google:** Apps Script có hạn mức sử dụng mỗi ngày. Với 2 người thì thường không chạm tới, nhưng nên xem lại quota hiện hành nếu thấy lỗi lạ.
+- **Đổi mật khẩu:** sửa `APP_PASSWORD` trong Script properties. Lần mở tới, trang sẽ hỏi lại mật khẩu.
