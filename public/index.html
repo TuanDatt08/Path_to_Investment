@@ -420,7 +420,7 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 
 <script>
 // Link Web App của Google Apps Script (Deploy → Web app), dạng https://script.google.com/macros/s/.../exec
-const API_URL = "DÁN_LINK_APPS_SCRIPT_VÀO_ĐÂY";
+const API_URL = "https://script.google.com/macros/s/AKfycbz8x5YnaROR4TcE002DtAwJZv1KbHk6K4D3UrT0QWNfiHr0-vQui0L1oD5dAorrtmo/exec";
 
 // Mỗi tuần: các bài nhỏ (~15 phút/bài) + 1 bài tập chung.
 // Mỗi bài: [mã, tên bài, câu tự kiểm tra, [học về gì...], [tìm ở đâu...]]
@@ -705,7 +705,7 @@ function op(o) {
 }
 // ponytail: hỏi số phiên bản mỗi 10 giây; sửa tay trong Sheet thì cần F5 mới thấy.
 function poll() {
-  if (document.visibilityState !== "visible" || !pw) return;
+  if (document.visibilityState !== "visible" || !$("login").hidden) return;
   queue(async () => {
     try {
       const { v } = await call({ type: "v" });
@@ -955,8 +955,7 @@ buildFund();
 buildSettings();
 render();
 if (API_URL.includes("DÁN_LINK")) setSync("err", "Chưa dán link Apps Script vào API_URL");
-else if (!pw) showLogin();
-else load();
+else load(); // server chỉ đòi mật khẩu nếu đã đặt APP_PASSWORD
 setInterval(poll, 10000);
 document.addEventListener("visibilitychange", poll);
 </script>

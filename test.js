@@ -56,4 +56,7 @@ assert.strictEqual(s.fines.length, 3);
 assert.strictEqual(s.fines.find(f => f.id === id).paid, true);
 assert.strictEqual(call({ type: "v" }).v, s.v);
 assert.strictEqual(call({ type: "delFine", id }).fines.length, 2);
+
+delete props.APP_PASSWORD; // không đặt mật khẩu: ai cũng dùng được
+assert.strictEqual(call({ type: "state" }, "").fines.length, 2);
 console.log("OK: tất cả kiểm tra đều qua");

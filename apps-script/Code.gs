@@ -1,5 +1,5 @@
 // Backend cho Lộ trình Chứng khoán 8 Tuần: chạy trên Google Apps Script, lưu dữ liệu vào chính Google Sheet này.
-// Mật khẩu chung: Project Settings → Script properties → thêm APP_PASSWORD.
+// Mật khẩu chung (tùy chọn): Project Settings → Script properties → thêm APP_PASSWORD. Không đặt thì ai có link cũng dùng được.
 // Trang web gửi mọi thao tác bằng POST: { pw, op: { type, ... } } và nhận lại toàn bộ dữ liệu.
 
 const FINE_TYPES = { "Trễ giờ": 50000, "Không chuẩn bị bài": 100000, "Không bù bài trong 24h": 200000, "Cầm điện thoại": 50000, "Dùng vé hoãn": 0 };
@@ -31,11 +31,11 @@ function doGet() {
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json({ error: "Dữ liệu gửi lên không hợp lệ" }); }
+  // Mật khẩu là tùy chọn: chỉ kiểm tra khi đã đặt APP_PASSWORD.
   const want = PropertiesService.getScriptProperties().getProperty("APP_PASSWORD");
-  if (!want) return json({ error: "Chưa đặt APP_PASSWORD trong Script properties", auth: false });
-  if (!body || body.pw !== want) return json({ error: "Sai mật khẩu", auth: false });
+  if (want && (!body || body.pw !== want)) return json({ error: "Sai mật khẩu", auth: false });
 
-  const op = body.op || {};
+  const op = (body && body.op) || {};
   if (op.type === "v") return json({ v: getV() });
   if (op.type === "state") return json(readState());
 
