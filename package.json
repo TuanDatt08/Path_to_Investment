@@ -1,0 +1,14 @@
+{
+  "name": "ck8",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lộ trình Chứng khoán 8 Tuần cho 2 người",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

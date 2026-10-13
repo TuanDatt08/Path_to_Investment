@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lộ trình Chứng khoán 8 Tuần</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z' fill='%235b7f24'/%3E%3Cpath d='M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z' fill='%23dfe9b4'/%3E%3Ccircle cx='16' cy='19' r='4.5' fill='%238a5a3b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: một cuốn sổ học nhẹ nhàng — nền trắng ngả xanh bơ, chữ có chân cho tiêu đề, góc bo tròn, logo quả bơ */
+:root {
+  --bg: #fafcf5;
+  --surface: #ffffff;
+  --surface-2: #f4f8ea;
+  --fg: #2b3520;
+  --muted: #6f7d5f;
+  --line: #e2e9d2;
+  --accent: #5b7f24;      /* vỏ bơ */
+  --accent-soft: #edf3dc;
+  --on-accent: #ffffff;
+  --flesh: #dfe9b4;       /* ruột bơ */
+  --ref: #a8862a;         /* vàng bơ */
+  --ref-soft: #f8f3d9;
+  --down: #b5503c;
+  --down-soft: #f8e6e1;
+  --ceil: #8a5a3b;        /* hạt bơ */
+  --ceil-soft: #f2e8df;
+  --shadow: 0 1px 2px rgba(60, 80, 30, .05), 0 8px 24px rgba(60, 80, 30, .06);
+  --font-display: "Lora", Georgia, "Times New Roman", serif;
+  --font-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141a10; --surface: #1b2316; --surface-2: #212b1b; --fg: #e8eedc; --muted: #a3b08f; --line: #2e3a26;
+    --accent: #a6c76a; --accent-soft: #2a361d; --on-accent: #141a10; --flesh: #3a4a26; --ref: #e0c063; --ref-soft: #3a3218;
+    --down: #f08a76; --down-soft: #3d2019; --ceil: #c99a76; --ceil-soft: #3a2a1f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background:
+    radial-gradient(1200px 420px at 85% -120px, color-mix(in srgb, var(--flesh) 70%, transparent), transparent 70%),
+    radial-gradient(800px 360px at -10% 0, color-mix(in srgb, var(--accent-soft) 90%, transparent), transparent 70%),
+    var(--bg);
+  background-repeat: no-repeat;
+  color: var(--fg); font: 15px/1.65 var(--font-body);
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.25; }
+h2 { font-size: 26px; }
+h3 { font-size: 17.5px; }
+.verse { font-family: var(--font-display); font-style: italic; color: var(--accent); font-size: 17px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.up { color: var(--accent); }
+.dn { color: var(--down); }
+
+/* Nav */
+nav {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-in { max-width: 1080px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; }
+.brand { display: flex; gap: 10px; align-items: center; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+.brand svg { flex: none; }
+.links { display: flex; gap: 4px; overflow-x: auto; }
+.links a { color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; }
+.links a:hover { color: var(--fg); background: var(--surface); }
+.sync { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ref); }
+.sync.ok::before { background: var(--accent); }
+.sync.err::before { background: var(--down); }
+
+main { max-width: 1080px; margin: 0 auto; padding: 28px 16px 80px; display: grid; gap: 48px; }
+section { display: grid; gap: 18px; scroll-margin-top: 72px; }
+.section-head { display: grid; gap: 6px; }
+.section-head p { color: var(--muted); max-width: 65ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+
+/* Controls */
+input, select, textarea, button { font: inherit; color: inherit; }
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+:is(input, select, textarea, button, summary, a):focus-visible, .seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { cursor: pointer; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 9px 16px; font-weight: 600; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+button.primary:hover { filter: brightness(1.08); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field > span { font-size: 12px; font-weight: 600; letter-spacing: .03em; color: var(--muted); }
+
+/* Tổng quan: 4 thẻ */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { padding: 18px; display: grid; gap: 4px; align-content: start; }
+.kpi .v { font-family: var(--font-display); font-weight: 600; font-size: 24px; line-height: 1.2; }
+.kpi .k { font-size: 13px; color: var(--muted); }
+.meter { display: flex; gap: 4px; margin-top: 8px; }
+.meter i { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.meter i.past { background: var(--accent); }
+.meter i.now { background: var(--ref); }
+.bigbar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin-top: 8px; }
+.bigbar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+/* Settings */
+details.settings { padding: 0; }
+details.settings summary { cursor: pointer; padding: 14px 18px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+details.settings summary::-webkit-details-marker { display: none; }
+details.settings summary::after { content: "Mở"; color: var(--muted); font-weight: 500; font-size: 13px; }
+details.settings[open] summary::after { content: "Đóng"; }
+.settings-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0 18px 18px; }
+
+/* Lịch tuần */
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.day { display: grid; align-content: start; gap: 6px; min-height: 150px; padding: 10px; border-radius: 16px; border: 1px dashed var(--line); color: var(--muted); }
+.day .d { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+.day.on { border: 1px solid transparent; color: var(--fg); }
+.day.self { background: var(--ref-soft); }
+.day.syncd { background: var(--accent-soft); }
+.day.review { background: var(--ceil-soft); }
+.day.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+.day.today .d::after { content: " · Hôm nay"; font-family: var(--font-body); font-weight: 600; font-size: 11px; color: var(--muted); }
+.day .what { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.day .dur { font-family: var(--font-mono); font-size: 13px; }
+.day.self .dur { color: var(--ref); }
+.day.syncd .dur { color: var(--accent); }
+.day.review .dur { color: var(--ceil); }
+.day .note { font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.day .off { font-size: 12px; }
+
+/* Giai đoạn */
+.phases { display: grid; gap: 10px; }
+details.phase { overflow: hidden; }
+details.phase.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), var(--shadow); }
+details.phase > summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 16px 20px; }
+details.phase > summary::-webkit-details-marker { display: none; }
+.wk { font-family: var(--font-display); font-style: italic; font-size: 24px; color: var(--accent); }
+.wk small { display: block; font-family: var(--font-body); font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.ph-title { display: grid; gap: 6px; min-width: 0; }
+.ph-bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; max-width: 320px; }
+.ph-bar i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+.ph-right { display: flex; gap: 8px; align-items: center; }
+.chev { width: 20px; height: 20px; color: var(--muted); transition: transform .2s; }
+details[open] > summary .chev { transform: rotate(180deg); }
+.ph-body { padding: 4px 20px 20px 112px; display: grid; gap: 16px; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill.todo { background: var(--line); color: var(--muted); }
+.pill.doing { background: var(--ref-soft); color: var(--ref); }
+.pill.done { background: var(--accent-soft); color: var(--accent); }
+.pill.now { background: var(--accent); color: var(--on-accent); }
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 24px; }
+ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.check label { display: flex; gap: 10px; align-items: flex-start; padding: 6px 8px; margin-inline: -8px; border-radius: 12px; cursor: pointer; }
+.check label:hover { background: var(--surface-2); }
+.check input { accent-color: var(--accent); width: 18px; height: 18px; margin: 2px 0 0; flex: none; }
+.check .it { display: grid; gap: 2px; min-width: 0; }
+.check .lt { font-weight: 500; }
+.check .q { font-size: 13.5px; color: var(--muted); }
+.check input:checked + .it .lt { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--accent); }
+.day-tag, .check .dt { display: inline-block; font-family: var(--font-mono); font-size: 11px; padding: 0 6px; border-radius: 4px; margin-right: 8px; vertical-align: 1px; }
+.check .dt.d3 { background: var(--ref-soft); color: var(--ref); }
+.check .dt.d5 { background: var(--accent-soft); color: var(--accent); }
+.check li.lesson { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: start; }
+.check li.lesson > input { accent-color: var(--accent); width: 18px; height: 18px; margin: 11px 0 0; cursor: pointer; }
+details.ls { border-radius: 12px; min-width: 0; }
+details.ls[open] { background: var(--surface-2); }
+details.ls > summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 8px 10px; border-radius: 12px; }
+details.ls > summary::-webkit-details-marker { display: none; }
+details.ls > summary:hover { background: var(--surface-2); }
+.hint { font-size: 0; white-space: nowrap; }
+.hint::after { content: "Xem gợi ý ▾"; font-size: 12.5px; color: var(--accent); font-weight: 500; }
+details.ls[open] .hint::after { content: "Thu gọn ▴"; }
+.ls-body { padding: 2px 12px 14px; display: grid; gap: 12px; font-size: 14px; }
+.ls-body b { display: block; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.ls-body ul { list-style: disc; padding-left: 18px; gap: 3px; }
+.ls-q { padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px dashed var(--line); }
+.lesson > input:checked + details .lt { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--accent); }
+.check li.ex { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.aside { display: grid; gap: 16px; align-content: start; }
+.howto { display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+.howto b { color: var(--fg); font-size: 13px; }
+.src li { padding-left: 14px; position: relative; color: var(--muted); font-size: 14px; }
+.src li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 1.5px; background: var(--muted); }
+.tag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; vertical-align: 1px; background: var(--ref-soft); color: var(--ref); }
+.label { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.gate { padding: 10px 14px; border-radius: 12px; background: var(--accent-soft); font-size: 14px; }
+.ph-foot { padding-top: 16px; border-top: 1px solid var(--line); }
+.ph-right .num { font-size: 13px; }
+
+/* Nguyên tắc */
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rule { padding: 18px; display: grid; gap: 8px; align-content: start; }
+.rule .n { font-family: var(--font-mono); color: var(--accent); font-size: 13px; }
+.rule p { color: var(--muted); font-size: 14px; }
+
+/* Quỹ */
+.fund-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; }
+.person { padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.person .hd { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.person .row { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.person .row b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.passes { display: flex; gap: 4px; }
+.passes i { width: 22px; height: 10px; border-radius: 2px; background: var(--ceil); }
+.passes i.used { background: var(--line); }
+.rates { padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.rate { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; }
+.rate b { font-family: var(--font-mono); font-weight: 500; color: var(--down); white-space: nowrap; }
+.rate.pass b { color: var(--ceil); }
+
+.addfine { display: grid; grid-template-columns: 150px 1fr 1.4fr 130px auto; gap: 10px; align-items: end; padding: 16px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg label { flex: 1; text-align: center; padding: 8px 10px; cursor: pointer; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seg label + label { border-left: 1px solid var(--line); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--accent); color: var(--on-accent); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 600px; }
+th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+tbody tr:last-child td { border-bottom: 0; }
+td.money, th.money { text-align: right; }
+td.money { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--down); white-space: nowrap; }
+td.money.zero { color: var(--ceil); }
+td.date { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted); }
+.paid { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; font-size: 13px; }
+.paid input { accent-color: var(--accent); width: 16px; height: 16px; }
+button.del { padding: 4px 10px; font-size: 12.5px; color: var(--muted); }
+button.del.armed { background: var(--down); border-color: var(--down); color: var(--on-accent); }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; z-index: 20;
+  background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 500; max-width: calc(100% - 32px);
+  transition: opacity .25s, transform .25s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--down); color: var(--on-accent); }
+
+footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 13px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+@media (max-width: 900px) {
+  .fund-top { grid-template-columns: 1fr; }
+  .kpis { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 680px) {
+  .links { display: none; }
+  .settings-grid { grid-template-columns: 1fr 1fr; }
+  .settings-grid .field:last-child { grid-column: 1 / -1; }
+  .week { grid-template-columns: 1fr; }
+  .day { min-height: 0; grid-template-columns: 64px minmax(0, 1fr); column-gap: 12px; }
+  .day > :not(.d) { grid-column: 2; }
+  .day .d { grid-row: 1 / span 4; }
+  .day:not(.on) { display: none; }
+  .day.today .d::after { content: "\A Hôm nay"; white-space: pre; }
+  details.phase > summary { grid-template-columns: 56px minmax(0, 1fr); padding: 14px 16px; }
+  .ph-right { grid-column: 1 / -1; }
+  .ph-body { padding: 4px 16px 16px; }
+  .cols, .rules, .ph-foot { grid-template-columns: 1fr; }
+  .addfine { grid-template-columns: 1fr 1fr; }
+  .addfine .f-type, .addfine button { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z" fill="var(--accent)"/><path d="M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z" fill="var(--flesh)"/><circle cx="16" cy="19" r="4.5" fill="var(--ceil)"/></svg>
+      <span>VN-HỌC</span>
+    </div>
+    <div class="links">
+      <a href="#tong-quan">Tổng quan</a><a href="#lich">Lịch</a><a href="#lo-trinh">Lộ trình</a><a href="#quy">Quỹ</a>
+    </div>
+    <span class="sync" id="sync">Đang kết nối…</span>
+  </div>
+</nav>
+
+<main>
+  <section id="tong-quan">
+    <div class="section-head">
+      <span class="eyebrow" id="hello">Kế hoạch tự học · 2 người</span>
+      <h1 style="font-size:clamp(30px,5vw,44px)">Lộ trình Chứng khoán <em style="color:var(--accent)">8 Tuần</em></h1>
+      <p class="verse">Mỗi ngày một bài nhỏ, như hạt bơ lặng lẽ nảy mầm.</p>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi">
+        <span class="k">Đang ở</span>
+        <span class="v" id="k-week">Chưa bắt đầu</span>
+        <span class="k" id="k-week-sub">Đặt ngày bắt đầu ở phần Cài đặt</span>
+        <div class="meter" id="weekdots"></div>
+      </div>
+      <div class="card kpi">
+        <span class="k">Buổi học tiếp theo</span>
+        <span class="v" id="k-next">—</span>
+        <span class="k" id="k-next-sub"></span>
+      </div>
+      <div class="card kpi">
+        <span class="k">Đã hiểu</span>
+        <span class="v"><span class="num" id="k-done">0</span> / <span class="num" id="k-total">0</span> bài</span>
+        <span class="k">Tick ở phần Lộ trình</span>
+        <div class="bigbar"><i id="k-bar"></i></div>
+      </div>
+      <div class="card kpi">
+        <span class="k">Quỹ đang có</span>
+        <span class="v num up" id="k-fund">0đ</span>
+        <span class="k" id="k-fund-sub">Không ai nợ tiền phạt</span>
+      </div>
+    </div>
+
+    <details class="card settings" id="settings">
+      <summary>Cài đặt: tên hai người và ngày bắt đầu</summary>
+      <div class="settings-grid">
+        <label class="field"><span>Người A</span><input type="text" id="nameA" maxlength="24" placeholder="Tên bạn"></label>
+        <label class="field"><span>Người B</span><input type="text" id="nameB" maxlength="24" placeholder="Tên bạn của bạn"></label>
+        <label class="field"><span>Ngày bắt đầu (thứ 2 của tuần 1)</span><input type="date" id="start"></label>
+      </div>
+    </details>
+  </section>
+
+  <section id="lich">
+    <div class="section-head">
+      <span class="eyebrow">Lịch cố định</span>
+      <h2>Một tuần học</h2>
+    </div>
+    <div class="week" id="week">
+      <div class="day" data-dow="1"><span class="d">T2</span><span class="off">Nghỉ</span></div>
+      <div class="day on self" data-dow="2"><span class="d">T3</span><span class="what">Tự học</span><span class="dur">60 phút</span><span class="note">Mỗi người tự học 4 bài nhỏ đầu tuần (khoảng 15 phút/bài). Ghi lại chỗ chưa hiểu.</span></div>
+      <div class="day" data-dow="3"><span class="d">T4</span><span class="off">Nghỉ</span></div>
+      <div class="day on syncd" data-dow="4"><span class="d">T5</span><span class="what">Học chung</span><span class="dur">90 phút</span><span class="note">Hỏi nhau câu tự kiểm tra, học cùng các bài còn lại, làm bài tập tuần.</span></div>
+      <div class="day" data-dow="5"><span class="d">T6</span><span class="off">Nghỉ</span></div>
+      <div class="day on review" data-dow="6"><span class="d">T7</span><span class="what">Review &amp; Thể thao</span><span class="dur">45 phút</span><span class="note">Hoặc CN. Xem lại bài chưa tick, ghi chú, nộp phạt nếu có.</span></div>
+      <div class="day" data-dow="0"><span class="d">CN</span><span class="off">Dự phòng bù bài</span></div>
+    </div>
+  </section>
+
+  <section id="lo-trinh">
+    <div class="section-head">
+      <span class="eyebrow">Nội dung</span>
+      <h2>Lộ trình từng tuần</h2>
+      <p>Hai người học chung cùng một nội dung. Mỗi bài nhỏ chỉ một ý. Nhãn <span class="day-tag" style="background:var(--ref-soft);color:var(--ref)">T3</span> là học thứ 3, <span class="day-tag" style="background:var(--accent-soft);color:var(--accent)">T5</span> là học thứ 5.</p>
+    </div>
+    <div class="phases" id="phases"></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <span class="eyebrow">Rules of Engagement</span>
+      <h2>Nguyên tắc học tập</h2>
+    </div>
+    <div class="rules">
+      <div class="card rule"><span class="n">Luật 1</span><h3>Hiểu bản chất</h3><p>Không giải thích được một khái niệm (ví dụ lệnh ATO) bằng lời thường cho người kia hiểu thì coi như cả hai chưa nắm bài.</p></div>
+      <div class="card rule"><span class="n">Luật 2</span><h3>Ghi chép một chỗ</h3><p>Notion giữ "Từ điển thuật ngữ", "Nhật ký lý thuyết", "Thắc mắc chưa giải quyết". Trang này giữ tiến độ và quỹ phạt.</p></div>
+      <div class="card rule"><span class="n">Luật 3</span><h3>Phản biện không tự ái</h3><p>Người phản biện đi tìm lỗ hổng, người trình bày không giận. Mục tiêu là loại sai lầm cơ bản trước khi có tiền thật.</p></div>
+    </div>
+  </section>
+
+  <section id="quy">
+    <div class="section-head">
+      <span class="eyebrow">Skin in the game</span>
+      <h2>Quỹ cam kết: <span class="num up" id="fund">0đ</span></h2>
+      <p id="fund-sub">Mỗi người đóng 500.000đ ngày đầu. Tiền phạt chuyển thêm vào quỹ. Tick "Đã nộp" sau khi chuyển khoản.</p>
+    </div>
+
+    <div class="fund-top">
+      <div class="card person" id="personA"></div>
+      <div class="card person" id="personB"></div>
+      <div class="card rates" id="rates"><div class="label" style="margin:0">Bảng giá phạt</div></div>
+    </div>
+
+    <form class="card addfine" id="fineForm">
+      <label class="field"><span>Ngày</span><input type="date" id="f-date" required></label>
+      <div class="field"><span>Người vi phạm</span>
+        <div class="seg">
+          <label><input type="radio" name="who" id="f-whoA" value="A" checked><span data-name="A">A</span></label>
+          <label><input type="radio" name="who" id="f-whoB" value="B"><span data-name="B">B</span></label>
+        </div>
+      </div>
+      <label class="field f-type"><span>Lỗi</span><select id="f-type"></select></label>
+      <label class="field"><span>Số tiền (đ)</span><input type="number" id="f-amt" min="0" step="10000" required></label>
+      <button type="submit" class="primary" id="f-add">Ghi lỗi</button>
+    </form>
+
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Ngày</th><th>Người</th><th>Lỗi</th><th class="money">Số tiền</th><th>Nộp</th><th></th></tr></thead>
+        <tbody id="fines"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>Ghi chép trên Notion, tiến độ và quỹ phạt trên trang này, họp qua Discord.</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// Mỗi tuần: các bài nhỏ (~15 phút/bài) + 1 bài tập chung.
+// Mỗi bài: [mã, tên bài, câu tự kiểm tra, [học về gì...], [tìm ở đâu...]]
+// 4 bài đầu học thứ 3, phần còn lại học cùng nhau thứ 5.
+const PHASES = [
+  { n: 1, title: "Tiền là gì?",
+    items: [
+      ["m1", "Tiền dùng để làm gì: trao đổi, đo giá trị, cất giữ", "Kể 3 việc tiền làm được, mỗi việc một ví dụ.",
+        ["Phương tiện trao đổi: dùng tiền để mua bán thay vì đổi hàng lấy hàng", "Thước đo giá trị: mọi thứ được định giá bằng cùng một đơn vị", "Cất giữ giá trị: để dành hôm nay, tiêu sau này"],
+        ["Từ khóa: \"3 chức năng của tiền tệ\"", "Wikipedia tiếng Việt: bài \"Tiền\""]],
+      ["m2", "Từ đổi hàng, vàng đến tiền giấy", "Vì sao người ta thôi dùng vàng để mua bán hằng ngày?",
+        ["Đổi hàng lấy hàng khó khi hai bên không cần đúng thứ của nhau", "Vàng, bạc được dùng làm tiền vì hiếm, bền, dễ chia nhỏ", "Tiền giấy ra đời để mang theo tiện hơn, lúc đầu đổi được ra vàng"],
+        ["Từ khóa: \"lịch sử tiền tệ\", \"chế độ bản vị vàng\"", "YouTube: tìm \"lịch sử của tiền\" (chọn kênh giáo dục, tránh kênh bán khóa học)"]],
+      ["m3", "Tiền pháp định (fiat)", "Tờ 500.000đ có giá trị nhờ đâu?",
+        ["Tiền pháp định do nhà nước phát hành, không đổi ra vàng được", "Giá trị đến từ niềm tin và luật quy định dùng nó để mua bán, nộp thuế", "Năm 1971 Mỹ ngừng cho đổi đô la ra vàng, từ đó tiền của hầu hết các nước là tiền pháp định"],
+        ["Từ khóa: \"tiền pháp định là gì\", \"fiat money\"", "Investopedia (tiếng Anh): bài \"Fiat Money\""]],
+      ["m4", "Ngân hàng tạo ra tiền khi cho vay", "Ngân hàng cho bạn vay 100 triệu thì tổng tiền trong nền kinh tế tăng hay giảm?",
+        ["Phần lớn tiền trong nền kinh tế là tiền gửi ở ngân hàng, không phải tiền mặt", "Khi cho vay, ngân hàng ghi thêm tiền vào tài khoản người vay: tiền mới được tạo ra", "Khi khoản vay được trả, lượng tiền đó mất đi"],
+        ["Từ khóa: \"ngân hàng tạo tiền như thế nào\", \"số nhân tiền tệ\"", "Tiếng Anh: \"Money creation in the modern economy\" của Ngân hàng Trung ương Anh (2014)"]],
+      ["m5", "Tín dụng: vay để tiêu trước", "Vì sao vay nợ làm kinh tế tăng nhanh nhưng sau đó phải chậm lại?",
+        ["Tín dụng là vay để chi tiêu trước, trả sau", "Chi tiêu của người này là thu nhập của người khác, nên vay nhiều làm kinh tế tăng nhanh", "Nợ phải trả, nên sau đó chi tiêu buộc phải giảm"],
+        ["Video Ray Dalio, khoảng 10 phút đầu", "YouTube: tìm \"Cỗ máy kinh tế vận hành như thế nào\" để xem bản phụ đề tiếng Việt"]],
+      ["m6", "Chu kỳ nợ ngắn hạn và dài hạn", "Theo video, một chu kỳ nợ ngắn hạn kéo dài khoảng bao lâu?",
+        ["Chu kỳ ngắn hạn: vay tăng → giá tăng → lãi suất tăng → kinh tế chậm lại, khoảng 5–8 năm", "Chu kỳ dài hạn: nợ tích tụ qua nhiều thập kỷ cho đến khi phải giảm nợ", "Ba lực chính của nền kinh tế: năng suất, chu kỳ nợ ngắn hạn, chu kỳ nợ dài hạn"],
+        ["Video Ray Dalio, nửa sau", "Từ khóa: \"chu kỳ nợ ngắn hạn dài hạn Ray Dalio\""]],
+    ],
+    ex: "Cùng vẽ sơ đồ tiền chạy: NHNN → ngân hàng → người vay → cửa hàng, rồi giải thích lại cho nhau",
+    src: ["Video: How The Economic Machine Works (Ray Dalio, ~30 phút)", "Đọc thêm: Tâm lý học về tiền, chương 1–2"] },
+  { n: 2, title: "Lạm phát và lãi suất",
+    items: [
+      ["m1", "Lạm phát là gì", "Một bát phở tăng từ 30.000đ lên 50.000đ sau 10 năm nói lên điều gì?",
+        ["Lạm phát là giá cả nói chung tăng lên theo thời gian", "Cùng một số tiền mua được ít hàng hơn: sức mua giảm", "Lạm phát nhẹ và ổn định (vài %/năm) được coi là bình thường"],
+        ["Từ khóa: \"lạm phát là gì\"", "Wikipedia tiếng Việt: bài \"Lạm phát\""]],
+      ["m2", "CPI: cách đo lạm phát", "CPI tăng 4% nghĩa là gì với 1 triệu đồng của bạn?",
+        ["CPI (chỉ số giá tiêu dùng) theo dõi giá một giỏ hàng hóa, dịch vụ quen thuộc", "Lạm phát năm = CPI tăng bao nhiêu % so với năm trước", "Việt Nam công bố CPI hằng tháng"],
+        ["Tổng cục Thống kê (gso.gov.vn): số liệu CPI", "Từ khóa: \"CPI tháng ... Việt Nam\" (điền tháng gần nhất)"]],
+      ["m3", "Vì sao có lạm phát", "Kể 2 nguyên nhân làm giá cả tăng.",
+        ["Cầu kéo: mọi người muốn mua nhiều hơn lượng hàng làm ra", "Chi phí đẩy: xăng, nguyên liệu, lương tăng nên giá bán tăng", "Tiền trong nền kinh tế tăng nhanh hơn lượng hàng hóa"],
+        ["Từ khóa: \"nguyên nhân lạm phát cầu kéo chi phí đẩy\""]],
+      ["m4", "Lãi suất là giá của tiền", "Vì sao ngân hàng phải trả lãi khi bạn gửi tiền?",
+        ["Người vay trả lãi để được dùng tiền của người khác", "Ngân hàng trả lãi cho bạn vì họ đem tiền gửi đi cho vay với lãi cao hơn", "Lãi suất cao: vay đắt, gửi lời. Lãi suất thấp: ngược lại"],
+        ["Từ khóa: \"lãi suất là gì\"", "Bảng lãi suất tiết kiệm trên website ngân hàng bạn đang dùng"]],
+      ["m5", "Lãi suất thực = lãi suất gửi − lạm phát", "Gửi tiết kiệm 5%, lạm phát 4%: thực tế bạn giàu thêm bao nhiêu?",
+        ["Lãi suất thực ≈ lãi suất danh nghĩa − lạm phát", "Lãi suất thực âm: gửi tiền vẫn bị mất sức mua", "Vì vậy người ta tìm kênh đầu tư có lợi nhuận cao hơn lạm phát"],
+        ["Từ khóa: \"lãi suất thực và lãi suất danh nghĩa\""]],
+      ["m6", "Lãi đơn và lãi kép", "Vì sao lãi kép càng để lâu càng mạnh?",
+        ["Lãi đơn: chỉ tính lãi trên tiền gốc", "Lãi kép: lãi được cộng vào gốc, kỳ sau tính lãi trên cả phần lãi", "Công thức: Tiền cuối = Gốc × (1 + lãi suất)^số năm"],
+        ["Từ khóa: \"lãi kép là gì\", \"công thức lãi kép\"", "Tự thử trong Excel: =10000000*(1+8%)^10"]],
+      ["m7", "Quy tắc 72", "Lãi 8%/năm thì sau bao lâu tiền gấp đôi?",
+        ["Số năm để tiền gấp đôi ≈ 72 ÷ lãi suất (%)", "Dùng ngược cho lạm phát: lạm phát 4% thì khoảng 18 năm sức mua còn một nửa", "Chỉ là ước lượng nhanh, chính xác nhất với lãi suất khoảng 6–10%"],
+        ["Từ khóa: \"quy tắc 72\""]],
+    ],
+    ex: "Tính trong Excel: 10 triệu sau 10 năm với lạm phát 3,5% còn sức mua bao nhiêu (≈7,1 triệu); góp 2 triệu/tháng, lãi 8%/năm trong 10 năm được bao nhiêu (=FV(8%/12,120,-2000000) ≈ 366 triệu)",
+    src: ["Số liệu CPI trên trang Tổng cục Thống kê (gso.gov.vn)", "Excel hoặc Google Sheets", "Đọc thêm: Tâm lý học về tiền, chương 3–4"] },
+  { n: 3, title: "Ngân hàng trung ương và chu kỳ kinh tế",
+    items: [
+      ["m1", "Ngân hàng trung ương là ai: NHNN và FED", "NHNN khác ngân hàng bạn gửi tiết kiệm ở điểm nào?",
+        ["Ngân hàng trung ương quản lý tiền của cả nước, không nhận tiền gửi của người dân", "Việt Nam có Ngân hàng Nhà nước (NHNN), Mỹ có Cục Dự trữ Liên bang (FED)", "Mục tiêu chính: giữ lạm phát ổn định, hỗ trợ tăng trưởng"],
+        ["sbv.gov.vn: phần giới thiệu chức năng, nhiệm vụ", "Từ khóa: \"FED là gì\""]],
+      ["m2", "Lãi suất điều hành", "NHNN tăng lãi suất thì lãi vay mua nhà của người dân thay đổi thế nào?",
+        ["Là các mức lãi suất NHNN dùng khi cho ngân hàng thương mại vay (tái cấp vốn, tái chiết khấu)", "NHNN tăng lãi suất điều hành thì ngân hàng thương mại thường tăng lãi cho vay và lãi tiết kiệm theo", "Tăng lãi suất để chống lạm phát, giảm lãi suất để kích thích kinh tế"],
+        ["sbv.gov.vn: mục Lãi suất", "Từ khóa: \"lãi suất điều hành NHNN\""]],
+      ["m3", "Bơm và hút tiền qua thị trường mở, tín phiếu", "NHNN phát hành tín phiếu là đang bơm hay hút tiền?",
+        ["Thị trường mở (OMO): NHNN mua bán giấy tờ có giá với các ngân hàng", "NHNN mua giấy tờ có giá thì đưa tiền ra: bơm tiền", "NHNN bán tín phiếu thì rút tiền về: hút tiền"],
+        ["Từ khóa: \"NHNN bơm tiền qua OMO\", \"phát hành tín phiếu hút tiền\"", "Tin tức trên CafeF, VnExpress mục Kinh doanh"]],
+      ["m4", "Dự trữ bắt buộc", "Tăng tỷ lệ dự trữ bắt buộc thì ngân hàng cho vay nhiều hơn hay ít hơn?",
+        ["Ngân hàng phải giữ lại một tỷ lệ tiền gửi, không được cho vay hết", "Tăng tỷ lệ này: ngân hàng có ít tiền cho vay hơn, tiền trong nền kinh tế giảm", "Công cụ này ít khi được điều chỉnh"],
+        ["Từ khóa: \"tỷ lệ dự trữ bắt buộc là gì\""]],
+      ["m5", "Vì sao FED ảnh hưởng Việt Nam: tỷ giá", "FED tăng lãi suất thì tiền đồng thường chịu áp lực gì?",
+        ["Tỷ giá là giá của một đồng tiền tính bằng đồng tiền khác, ví dụ 1 USD đổi bao nhiêu VND", "FED tăng lãi suất: USD hấp dẫn hơn, tiền chảy về Mỹ, VND chịu áp lực mất giá", "NHNN có thể tăng lãi suất theo hoặc bán ngoại tệ để giữ tỷ giá"],
+        ["Từ khóa: \"FED tăng lãi suất ảnh hưởng Việt Nam\"", "Tỷ giá trung tâm công bố hằng ngày trên sbv.gov.vn"]],
+      ["m6", "4 pha của chu kỳ kinh tế", "Kể tên 4 pha theo thứ tự.",
+        ["Mở rộng: kinh tế tăng, nhiều việc làm", "Đỉnh: tăng nóng, lạm phát cao", "Suy thoái: kinh tế chậm lại", "Đáy: chạm mức thấp rồi bắt đầu hồi phục"],
+        ["Từ khóa: \"chu kỳ kinh tế 4 giai đoạn\""]],
+      ["m7", "Lãi suất và giá cổ phiếu", "Vì sao lãi suất tăng thường làm chứng khoán giảm?",
+        ["Lãi suất cao: gửi tiết kiệm hấp dẫn hơn, tiền rời chứng khoán", "Lãi suất cao: doanh nghiệp trả lãi vay nhiều hơn, lợi nhuận giảm", "Ngược lại, lãi suất giảm thường hỗ trợ chứng khoán"],
+        ["Từ khóa: \"lãi suất ảnh hưởng chứng khoán\""]],
+    ],
+    ex: "Mỗi người tìm 1 tin gần nhất về NHNN hoặc FED, cùng đoán tin đó tác động thế nào tới chứng khoán Việt Nam",
+    src: ["sbv.gov.vn: mục Chính sách tiền tệ", "Tin tức về các quyết định lãi suất của FED", "Đọc thêm: Tâm lý học về tiền, chương 5–6"] },
+  { n: 4, title: "Tiền của chính mình",
+    items: [
+      ["m1", "Ghi lại chi tiêu trong 7 ngày", "Khoản chi lớn nhất tuần qua của bạn là gì?",
+        ["Ghi mọi khoản chi, kể cả cốc trà đá", "Dùng sổ tay, Google Sheets hoặc app quản lý chi tiêu", "Cuối tuần cộng theo nhóm: ăn uống, đi lại, giải trí, học tập"],
+        ["Từ khóa: \"app quản lý chi tiêu\"", "Google Sheets: tìm \"mẫu quản lý chi tiêu cá nhân\""]],
+      ["m2", "Chi tiêu cần thiết và chi tiêu mong muốn", "Phân loại 5 khoản chi gần nhất của bạn.",
+        ["Cần: thiếu thì ảnh hưởng cuộc sống (ăn, ở, đi lại, học)", "Muốn: có thì vui, không có vẫn sống được (trà sữa, quần áo mới)", "Quy tắc tham khảo 50/30/20: 50% nhu cầu, 30% mong muốn, 20% tiết kiệm"],
+        ["Từ khóa: \"quy tắc 50/30/20\""]],
+      ["m3", "Tài sản và tiêu sản", "Chiếc xe máy là tài sản hay tiêu sản? Vì sao?",
+        ["Tài sản đưa tiền vào túi, tiêu sản lấy tiền ra khỏi túi", "Ví dụ tài sản: tiền gửi có lãi, cổ phiếu có cổ tức, nhà cho thuê", "Ví dụ tiêu sản: xe máy dùng đi lại, điện thoại mới"],
+        ["Từ khóa: \"tài sản và tiêu sản\"", "Sách: Cha giàu cha nghèo (Robert Kiyosaki)"]],
+      ["m4", "Tài sản ròng = tài sản − nợ", "Tài sản ròng của bạn đang dương hay âm?",
+        ["Tài sản ròng = tổng tài sản − tổng nợ", "Sinh viên có thể có tài sản ròng âm nếu đang vay (học phí, trả góp)", "Mục tiêu là con số này tăng dần theo thời gian"],
+        ["Từ khóa: \"tài sản ròng là gì\", \"net worth\""]],
+      ["m5", "Quỹ khẩn cấp: 3–6 tháng chi tiêu", "Quỹ khẩn cấp của bạn cần bao nhiêu tiền?",
+        ["Khoản tiền dành riêng cho việc bất ngờ: ốm, mất việc, hỏng xe", "Thường bằng 3–6 tháng chi tiêu cần thiết", "Để ở nơi an toàn, rút nhanh được; không dùng để mua cổ phiếu"],
+        ["Từ khóa: \"quỹ khẩn cấp bao nhiêu là đủ\"", "Podcast Hieu.tv: các tập về tài chính cá nhân"]],
+      ["m6", "Tiền nhàn rỗi: phần được phép đầu tư", "Vì sao không được dùng quỹ khẩn cấp để mua cổ phiếu?",
+        ["Tiền nhàn rỗi = tiền còn lại sau chi tiêu cần thiết và quỹ khẩn cấp", "Chỉ đầu tư bằng tiền mà mất đi cũng không ảnh hưởng cuộc sống", "Không vay tiền để đầu tư khi mới bắt đầu"],
+        ["Từ khóa: \"đầu tư bằng tiền nhàn rỗi\""]],
+      ["m7", "4 kênh: tiền gửi, vàng, bất động sản, chứng khoán", "Kênh nào rút tiền nhanh nhất? Kênh nào rủi ro nhất?",
+        ["Tiền gửi: an toàn, lãi thấp, rút được", "Vàng: giữ giá khi lạm phát cao, không sinh ra dòng tiền", "Bất động sản: cần vốn lớn, bán chậm", "Chứng khoán: vốn nhỏ vẫn mua được, bán nhanh, giá dao động mạnh"],
+        ["Từ khóa: \"so sánh các kênh đầu tư\""]],
+    ],
+    ex: "Mỗi người lập file Excel: thu, chi, tài sản, nợ, quỹ khẩn cấp và số tiền có thể đầu tư",
+    src: ["Podcast Hieu.tv: các tập về quản lý tài chính cá nhân", "Đọc thêm: Tâm lý học về tiền, chương 7–9"] },
+  { n: 5, title: "Cổ phiếu và sàn giao dịch",
+    items: [
+      ["m1", "Cổ phiếu là gì", "Mua 100 cổ phiếu FPT nghĩa là bạn sở hữu cái gì?",
+        ["Cổ phiếu xác nhận bạn sở hữu một phần công ty", "Giữ 100 cổ phiếu của công ty có hàng tỷ cổ phiếu là sở hữu một phần rất nhỏ", "Công ty làm ăn tốt thì phần sở hữu đó có giá trị hơn"],
+        ["Từ khóa: \"cổ phiếu là gì\"", "Website Ủy ban Chứng khoán Nhà nước (ssc.gov.vn)"]],
+      ["m2", "Quyền của cổ đông: cổ tức, biểu quyết", "Cổ tức tiền mặt và cổ tức bằng cổ phiếu khác nhau thế nào?",
+        ["Nhận cổ tức khi công ty chia lợi nhuận", "Cổ tức tiền mặt: nhận tiền. Cổ tức cổ phiếu: nhận thêm cổ phiếu", "Được biểu quyết tại đại hội đồng cổ đông"],
+        ["Từ khóa: \"quyền của cổ đông phổ thông\", \"cổ tức tiền mặt và cổ tức cổ phiếu\""]],
+      ["m3", "Trái phiếu là gì", "Mua trái phiếu là bạn đang làm chủ hay đang cho vay?",
+        ["Trái phiếu là giấy nợ: bạn cho công ty hoặc nhà nước vay tiền", "Được trả lãi định kỳ và nhận lại tiền gốc khi đáo hạn", "Rủi ro: bên phát hành không trả được nợ"],
+        ["Từ khóa: \"trái phiếu là gì\""]],
+      ["m4", "Cổ phiếu khác trái phiếu ở đâu", "Công ty phá sản thì người giữ trái phiếu hay cổ đông được trả tiền trước?",
+        ["Cổ phiếu: làm chủ, lợi nhuận không cố định, rủi ro cao hơn", "Trái phiếu: cho vay, lãi thường cố định, rủi ro thấp hơn", "Khi phá sản, chủ nợ được trả trước cổ đông"],
+        ["Từ khóa: \"so sánh cổ phiếu và trái phiếu\""]],
+      ["m5", "3 sàn: HOSE, HNX, UPCoM", "FPT và HPG đang niêm yết ở sàn nào?",
+        ["HOSE: Sở Giao dịch Chứng khoán TP.HCM, nhiều công ty lớn", "HNX: Sở Giao dịch Chứng khoán Hà Nội", "UPCoM: nơi giao dịch cổ phiếu của công ty chưa niêm yết, điều kiện thấp hơn"],
+        ["Website hsx.vn và hnx.vn", "Tra mã FPT, HPG trên CafeF để xem sàn niêm yết"]],
+      ["m6", "Biên độ dao động: ±7%, ±10%, ±15%", "Vì sao cổ phiếu trên UPCoM được dao động mạnh hơn?",
+        ["Biên độ: mức tối đa giá được tăng hoặc giảm trong một phiên so với giá tham chiếu", "HOSE ±7%, HNX ±10%, UPCoM ±15%", "Sàn có điều kiện thấp hơn thì biên độ rộng hơn"],
+        ["Từ khóa: \"biên độ dao động giá HOSE HNX UPCoM\""]],
+      ["m7", "Giá tham chiếu, trần, sàn; lô 100 cổ phiếu", "Giá tham chiếu 100.000đ trên HOSE thì giá trần, giá sàn là bao nhiêu?",
+        ["Giá tham chiếu thường là giá đóng cửa phiên trước", "Giá trần = tham chiếu + biên độ; giá sàn = tham chiếu − biên độ", "Trên HOSE, HNX mua bán theo lô 100 cổ phiếu"],
+        ["Từ khóa: \"cách tính giá trần giá sàn\"", "Quy chế giao dịch trên hsx.vn"]],
+    ],
+    ex: "Mở tài khoản chứng khoán (chưa nạp tiền), cùng xem giao diện và tìm mã FPT",
+    src: ["Website Ủy ban Chứng khoán Nhà nước, HOSE, HNX", "Đọc thêm: Tâm lý học về tiền, chương 10–12"] },
+  { n: 6, title: "Bảng giá và đặt lệnh",
+    items: [
+      ["m1", "Màu trên bảng giá: tím, xanh, vàng, đỏ, xanh lơ", "Mã đang màu tím nghĩa là gì?",
+        ["Tím: giá trần. Xanh lơ: giá sàn", "Vàng: bằng giá tham chiếu", "Xanh lá: tăng. Đỏ: giảm"],
+        ["Bảng giá trong app công ty chứng khoán", "Từ khóa: \"cách đọc bảng giá chứng khoán\""]],
+      ["m2", "Dư mua, dư bán và khối lượng", "Dư mua lớn hơn nhiều so với dư bán thường cho thấy điều gì?",
+        ["Dư mua: các lệnh mua đang chờ, gồm giá và khối lượng", "Dư bán: các lệnh bán đang chờ", "Khối lượng khớp: số cổ phiếu đã thật sự được mua bán"],
+        ["Từ khóa: \"dư mua dư bán là gì\""]],
+      ["m3", "Các phiên giao dịch trong ngày", "Phiên ATO và ATC diễn ra lúc mấy giờ?",
+        ["Sáng: phiên mở cửa, rồi khớp lệnh liên tục", "Nghỉ trưa", "Chiều: khớp lệnh liên tục, rồi phiên đóng cửa", "Giờ cụ thể khác nhau giữa các sàn, xem quy định hiện hành"],
+        ["hsx.vn, hnx.vn: thời gian giao dịch", "Từ khóa: \"thời gian giao dịch chứng khoán\""]],
+      ["m4", "Lệnh LO (giới hạn)", "Đặt LO mua giá 50.000đ khi giá đang 52.000đ thì có khớp không?",
+        ["Mua hoặc bán ở mức giá bạn chọn, hoặc tốt hơn", "Lệnh mua chỉ khớp khi có người bán ở giá đó hoặc thấp hơn", "Chưa khớp thì lệnh chờ đến hết phiên, hoặc đến khi bạn hủy"],
+        ["Từ khóa: \"lệnh LO là gì\""]],
+      ["m5", "Lệnh ATO và ATC", "Vì sao lệnh ATO được ưu tiên khớp trước lệnh LO?",
+        ["Đặt mua hoặc bán tại giá mở cửa (ATO) hoặc đóng cửa (ATC), không ghi giá", "Được ưu tiên khớp trước lệnh LO trong phiên mở cửa, đóng cửa", "Không khớp thì lệnh tự hủy sau phiên"],
+        ["Từ khóa: \"lệnh ATO ATC là gì\""]],
+      ["m6", "Lệnh thị trường: MP (HOSE); MTL, MOK, MAK (HNX)", "Đặt lệnh thị trường có rủi ro gì?",
+        ["Mua ở giá bán thấp nhất, bán ở giá mua cao nhất đang có", "Khớp ngay nhưng không biết trước giá", "HOSE dùng MP; HNX có MTL, MOK, MAK, khác nhau ở cách xử lý phần chưa khớp"],
+        ["Từ khóa: \"lệnh MP MTL MOK MAK khác nhau\""]],
+      ["m7", "Phí giao dịch, thuế 0,1% khi bán, thời gian tiền và cổ phiếu về", "Mua 10 triệu, bán được 11 triệu: sau phí và thuế còn lãi bao nhiêu?",
+        ["Phí giao dịch do công ty chứng khoán thu, thường vài phần nghìn giá trị lệnh", "Thuế 0,1% trên giá trị bán", "Cổ phiếu mua và tiền bán cần vài ngày làm việc mới về tài khoản (chu kỳ T+)"],
+        ["Biểu phí trên website công ty chứng khoán bạn mở tài khoản", "Từ khóa: \"chu kỳ thanh toán chứng khoán T+\""]],
+    ],
+    ex: "Chụp bảng giá thật lúc 10 giờ sáng, mỗi người giải thích 3 dòng; viết 3 lệnh giả định và đoán xem có khớp không",
+    src: ["Quy chế giao dịch hiện hành trên website HOSE, HNX", "Bảng giá trong app của công ty chứng khoán", "Đọc thêm: Tâm lý học về tiền, chương 13–15"] },
+  { n: 7, title: "Đọc báo cáo tài chính (phần 1)",
+    items: [
+      ["m1", "Báo cáo tài chính gồm những gì, tìm ở đâu", "Kể tên 3 báo cáo chính.",
+        ["3 báo cáo chính: Bảng cân đối kế toán, Kết quả kinh doanh, Lưu chuyển tiền tệ", "Kèm phần Thuyết minh giải thích chi tiết", "Công ty niêm yết công bố theo quý và theo năm"],
+        ["CafeF hoặc Vietstock: tìm mã FPT, mục Tài chính / Báo cáo tài chính", "Trang quan hệ cổ đông trên website FPT"]],
+      ["m2", "Doanh thu", "Doanh thu năm gần nhất của FPT là bao nhiêu?",
+        ["Tổng tiền thu từ bán hàng, cung cấp dịch vụ", "Doanh thu thuần = doanh thu trừ các khoản giảm trừ", "So với năm trước để biết công ty có tăng trưởng không"],
+        ["Báo cáo Kết quả kinh doanh của FPT, dòng \"Doanh thu thuần\""]],
+      ["m3", "Giá vốn và lợi nhuận gộp", "Lợi nhuận gộp được tính thế nào?",
+        ["Giá vốn: chi phí trực tiếp để làm ra sản phẩm, dịch vụ", "Lợi nhuận gộp = doanh thu thuần − giá vốn", "Cho biết công ty lãi bao nhiêu từ hoạt động bán hàng chính"],
+        ["Báo cáo Kết quả kinh doanh, dòng \"Giá vốn hàng bán\" và \"Lợi nhuận gộp\""]],
+      ["m4", "Chi phí và lợi nhuận sau thuế", "Từ lợi nhuận gộp đến lợi nhuận sau thuế bị trừ những gì?",
+        ["Trừ chi phí bán hàng, chi phí quản lý, chi phí lãi vay", "Cộng trừ thu nhập và chi phí khác, rồi trừ thuế thu nhập doanh nghiệp", "Phần còn lại là lợi nhuận sau thuế"],
+        ["Báo cáo Kết quả kinh doanh, đọc lần lượt từ trên xuống"]],
+      ["m5", "Biên lợi nhuận", "Biên lợi nhuận gộp 40% nghĩa là gì?",
+        ["Biên lợi nhuận gộp = lợi nhuận gộp ÷ doanh thu", "Biên lợi nhuận ròng = lợi nhuận sau thuế ÷ doanh thu", "Biên cao và ổn định thường cho thấy công ty có lợi thế cạnh tranh"],
+        ["Từ khóa: \"biên lợi nhuận gộp là gì\"", "CafeF, Vietstock thường có sẵn mục chỉ số tài chính"]],
+      ["m6", "Tài sản = Nợ + Vốn chủ sở hữu", "Vì sao hai vế này luôn bằng nhau?",
+        ["Tài sản: những gì công ty đang có (tiền, hàng tồn kho, nhà xưởng)", "Nguồn vốn: tiền để có tài sản đó, đến từ đi vay (nợ) hoặc của chủ (vốn chủ sở hữu)", "Mỗi đồng tài sản đều có một nguồn, nên hai bên luôn bằng nhau"],
+        ["Bảng cân đối kế toán của FPT", "Từ khóa: \"bảng cân đối kế toán là gì\""]],
+      ["m7", "Nợ vay: tốt hay xấu", "Khi nào vay nợ giúp công ty, khi nào làm hại công ty?",
+        ["Vay nợ giúp công ty mở rộng nhanh hơn chỉ dùng vốn tự có", "Nợ quá nhiều thì lãi vay ăn mòn lợi nhuận, dễ gặp khó khi lãi suất tăng", "Chỉ số tham khảo: nợ ÷ vốn chủ sở hữu (D/E)"],
+        ["Từ khóa: \"chỉ số D/E\", \"đòn bẩy tài chính\""]],
+    ],
+    ex: "Lấy báo cáo năm gần nhất của FPT, điền 6 con số: doanh thu, lợi nhuận gộp, lợi nhuận sau thuế, tổng tài sản, nợ, vốn chủ sở hữu",
+    src: ["Báo cáo tài chính FPT trên CafeF hoặc Vietstock", "Đọc thêm: Tâm lý học về tiền, chương 16–18"] },
+  { n: 8, title: "Đọc báo cáo tài chính (phần 2) và định giá",
+    items: [
+      ["m1", "Báo cáo lưu chuyển tiền tệ: 3 dòng tiền", "Kể tên 3 dòng tiền.",
+        ["Dòng tiền kinh doanh: thu chi từ hoạt động chính", "Dòng tiền đầu tư: mua, bán tài sản và các khoản đầu tư", "Dòng tiền tài chính: vay, trả nợ, chia cổ tức"],
+        ["Báo cáo Lưu chuyển tiền tệ của FPT", "Từ khóa: \"báo cáo lưu chuyển tiền tệ\""]],
+      ["m2", "Có lãi mà vẫn thiếu tiền", "Bán chịu cho khách thì lợi nhuận và tiền mặt khác nhau thế nào?",
+        ["Bán chịu: đã ghi doanh thu, lợi nhuận nhưng chưa thu được tiền", "Tiền bị kẹt ở khoản phải thu và hàng tồn kho", "Dòng tiền kinh doanh âm nhiều năm liền là dấu hiệu cần cảnh giác"],
+        ["So sánh dòng \"Lợi nhuận sau thuế\" với \"Lưu chuyển tiền thuần từ hoạt động kinh doanh\""]],
+      ["m3", "EPS: lợi nhuận trên mỗi cổ phiếu", "EPS được tính thế nào?",
+        ["EPS = lợi nhuận sau thuế của cổ đông ÷ số cổ phiếu đang lưu hành", "Cho biết mỗi cổ phiếu làm ra bao nhiêu đồng lợi nhuận mỗi năm", "EPS tăng đều qua các năm là tín hiệu tốt"],
+        ["Trang của mã cổ phiếu trên CafeF, Vietstock thường hiện sẵn EPS"]],
+      ["m4", "P/E: trả bao nhiêu cho 1 đồng lợi nhuận", "P/E bằng 15 nghĩa là gì?",
+        ["P/E = giá cổ phiếu ÷ EPS", "P/E bằng 15: bỏ ra 15 đồng để mua 1 đồng lợi nhuận mỗi năm", "Chỉ nên so P/E giữa các công ty cùng ngành"],
+        ["Từ khóa: \"chỉ số P/E là gì\""]],
+      ["m5", "ROE: công ty dùng vốn hiệu quả đến đâu", "ROE 20% nghĩa là gì?",
+        ["ROE = lợi nhuận sau thuế ÷ vốn chủ sở hữu", "ROE 20%: cứ 100 đồng vốn của cổ đông, công ty làm ra 20 đồng lãi mỗi năm", "ROE cao nhờ vay nợ nhiều thì cần xem kỹ"],
+        ["Từ khóa: \"chỉ số ROE là gì\""]],
+      ["m6", "Giá cổ phiếu phản ánh kỳ vọng", "Vì sao công ty có lãi mà giá cổ phiếu vẫn giảm?",
+        ["Giá hôm nay đã phản ánh những gì thị trường dự đoán", "Công ty lãi nhưng thấp hơn kỳ vọng thì giá vẫn có thể giảm", "Giá còn chịu tác động của lãi suất, tâm lý và dòng tiền chung"],
+        ["Đọc tin kết quả kinh doanh quý trên CafeF, so với diễn biến giá cùng lúc"]],
+    ],
+    ex: "Lập bảng so sánh FPT và HPG: P/E, ROE, tăng trưởng lợi nhuận. Mỗi người bảo vệ một mã, người kia phản biện",
+    src: ["Báo cáo tài chính FPT, HPG trên CafeF hoặc Vietstock", "Đọc thêm: Tâm lý học về tiền, chương 19–20"] },
+  { n: 9, opt: true, title: "Rủi ro và tốt nghiệp",
+    items: [
+      ["m1", "Đa dạng hóa", "Vì sao không nên dồn hết tiền vào một mã?",
+        ["Chia tiền vào nhiều mã, nhiều ngành, nhiều kênh", "Một mã giảm mạnh không làm mất quá nhiều tổng tài sản", "Giảm rủi ro riêng của từng công ty, không loại bỏ được rủi ro chung của thị trường"],
+        ["Từ khóa: \"đa dạng hóa danh mục đầu tư\""]],
+      ["m2", "Quỹ ETF và quỹ mở", "Mua 1 chứng chỉ quỹ ETF là đang mua cái gì?",
+        ["Quỹ ETF mua một rổ cổ phiếu theo một chỉ số, ví dụ VN30", "Mua chứng chỉ quỹ ETF là sở hữu một phần nhỏ của cả rổ", "Quỹ mở: mua bán qua công ty quản lý quỹ, không khớp lệnh trên sàn như cổ phiếu"],
+        ["Từ khóa: \"quỹ ETF là gì\", \"quỹ mở là gì\"", "Website các công ty quản lý quỹ"]],
+      ["m3", "Mua đều định kỳ (DCA)", "DCA giúp gì khi bạn không biết giá sẽ lên hay xuống?",
+        ["Mua đều một số tiền cố định theo định kỳ, ví dụ mỗi tháng", "Giá cao mua được ít, giá thấp mua được nhiều", "Không cần đoán đúng thời điểm"],
+        ["Từ khóa: \"DCA là gì\", \"đầu tư định kỳ\""]],
+      ["m4", "Vay margin", "Vay margin mà cổ phiếu giảm 30% thì chuyện gì có thể xảy ra?",
+        ["Vay tiền công ty chứng khoán để mua thêm cổ phiếu", "Lãi thì lãi nhiều, lỗ thì lỗ nhiều, còn phải trả lãi vay", "Giá giảm sâu sẽ bị yêu cầu nộp thêm tiền; không nộp thì bị bán cổ phiếu để trả nợ"],
+        ["Từ khóa: \"margin chứng khoán là gì\", \"call margin\""]],
+      ["m5", "Nhận diện lừa đảo", "Kể 2 dấu hiệu của một nhóm \"phím hàng\" lừa đảo.",
+        ["Cam kết lợi nhuận cao, chắc chắn", "Hối thúc chuyển tiền gấp, nhờ giữ hộ hoặc ủy thác tài khoản", "Mời vào nhóm Zalo, Telegram \"phím hàng\" có chuyên gia ẩn danh"],
+        ["Từ khóa: \"cảnh báo lừa đảo chứng khoán\"", "Các cảnh báo trên website Ủy ban Chứng khoán Nhà nước"]],
+    ],
+    ex: "Bài tốt nghiệp: mỗi người viết 1 trang phân tích một mã, người kia không bắt được lỗi cơ bản nào. Xong bài này mới được dùng quỹ để mua thật",
+    src: ["Website các quỹ ETF đang niêm yết trên HOSE"] },
+];
+const TUE = 4; // số bài học thứ 3
+for (const p of PHASES) {
+  p.id = "w" + p.n;
+  p.all = [...p.items.map(([k]) => k), "bt"];
+}
+const FINES = [
+  ["Trễ giờ", 50000, "Buổi thứ 5 hoặc cuối tuần"],
+  ["Không chuẩn bị bài", 100000, "Không xong tự học thứ 3, bù trong 24h"],
+  ["Không bù bài trong 24h", 200000, "Nhân đôi một lần, không nhân tiếp"],
+  ["Cầm điện thoại", 50000, "Trong giờ học chung"],
+  ["Dùng vé hoãn", 0, "Báo trước 24h, tối đa 2 vé/người"],
+];
+const SESSIONS = { 2: ["Tự học", "60 phút"], 4: ["Học chung", "90 phút"], 6: ["Review & Thể thao", "45 phút"] };
+const DOW = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+const PASS = "Dùng vé hoãn", MAX_PASS = 2, DEPOSIT = 500000;
+
+const $ = id => document.getElementById(id);
+const money = n => (Number(n) || 0).toLocaleString("vi-VN") + "đ";
+const iso = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
+const todayISO = () => iso(new Date());
+const dayNum = s => Math.floor(Date.parse(s + "T00:00:00Z") / 864e5);
+const viDate = s => s ? s.split("-").reverse().join("/") : "";
+
+let state = { v: -1, main: {}, fines: [] };
+const nameOf = w => (state.main.names && state.main.names[w]) || (w === "A" ? "Người A" : "Người B");
+const fineAmt = f => f.type === PASS ? 0 : (f.amount || 0);
+
+/* ---------- API ---------- */
+let busy = Promise.resolve();
+function op(o) {
+  busy = busy.then(async () => {
+    try {
+      const r = await fetch("/api/op", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) });
+      const data = await r.json();
+      if (!r.ok) toast(data.error || "Chưa lưu được", true);
+      if (data.main) setState(data);
+      setSync("ok", "Đã đồng bộ");
+    } catch (e) {
+      toast("Mất kết nối, chưa lưu được thay đổi", true);
+      setSync("err", "Mất kết nối");
+      poll();
+    }
+  });
+  return busy;
+}
+async function poll() {
+  if (document.visibilityState !== "visible") return;
+  try {
+    const r = await fetch("/api/state");
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    setSync("ok", "Đã đồng bộ");
+    if (data.v !== state.v) setState(data);
+  } catch (e) { setSync("err", "Mất kết nối"); }
+}
+function setState(s) { const before = phaseDone(); state = s; render(); celebrate(before); }
+function setSync(cls, text) { const s = $("sync"); s.className = "sync " + cls; s.textContent = text; }
+let tt;
+function toast(text, err) {
+  const t = $("toast"); t.textContent = text; t.className = "toast show" + (err ? " err" : "");
+  clearTimeout(tt); tt = setTimeout(() => { t.className = "toast"; }, 3200);
+}
+
+/* ---------- Derived ---------- */
+const checkedOf = pid => (state.main.checked && state.main.checked[pid]) || {};
+const phaseCount = p => p.all.filter(k => checkedOf(p.id)[k]).length;
+const phaseDone = () => PHASES.filter(p => phaseCount(p) === p.all.length).map(p => p.id);
+const passesUsed = w => state.fines.filter(f => f.who === w && f.type === PASS).length;
+function currentWeek() {
+  const s = state.main.start;
+  if (!s) return null;
+  const d = dayNum(todayISO()) - dayNum(s);
+  return d < 0 ? 0 : Math.floor(d / 7) + 1;
+}
+
+/* ---------- Build once ---------- */
+function buildPhases() {
+  const root = $("phases");
+  for (const p of PHASES) {
+    const el = document.createElement("details");
+    el.className = "card phase"; el.id = p.id;
+    const box = (k, inner) => `<label><input type="checkbox" id="c-${p.id}-${k}" data-phase="${p.id}" data-item="${k}"><span class="it">${inner}</span></label>`;
+    el.innerHTML = `
+      <summary>
+        <span class="wk">${String(p.n).padStart(2, "0")}<small>Tuần</small></span>
+        <span class="ph-title"><h3>${p.title}${p.opt ? '<span class="tag">Tùy chọn</span>' : ""}</h3><span class="ph-bar"><i data-bar></i></span></span>
+        <span class="ph-right"><span class="num muted" data-count></span><span class="pill now" hidden>Tuần này</span><span class="pill todo" data-status>Chưa học</span>
+          <svg class="chev" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+      </summary>
+      <div class="ph-body">
+        <div class="cols">
+          <div>
+            <ul class="check">${p.items.map(([k, t, q, learn, find], i) => `<li class="lesson">
+              <input type="checkbox" id="c-${p.id}-${k}" data-phase="${p.id}" data-item="${k}" aria-label="Đã học xong bài ${i + 1}">
+              <details class="ls">
+                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="hint">Xem gợi ý</span></summary>
+                <div class="ls-body">
+                  <div><b>Học về gì</b><ul>${learn.map(x => `<li>${x}</li>`).join("")}</ul></div>
+                  <div><b>Tìm ở đâu</b><ul>${find.map(x => `<li>${x}</li>`).join("")}</ul></div>
+                  <div class="ls-q"><b>Tự kiểm tra</b>${q}</div>
+                </div>
+              </details>
+            </li>`).join("")}
+              <li class="ex">${box("bt", `<span class="lt"><span class="dt d5">T5</span>Bài tập tuần</span><span class="q">${p.ex}</span>`)}</li>
+            </ul>
+          </div>
+          <div class="aside">
+            <div><div class="label">Tài liệu</div><ul class="src">${p.src.map(s => `<li>${s}</li>`).join("")}</ul></div>
+            <div class="howto"><b>Cách học tuần này</b>
+              <span>Thứ 3: mỗi người tự học bài 1–${Math.min(TUE, p.items.length)}, khoảng 15 phút/bài.</span>
+              <span>Thứ 5: hỏi nhau câu tự kiểm tra${p.items.length > TUE ? `, học cùng bài ${TUE + 1}–${p.items.length}` : ""}, làm bài tập tuần.</span>
+              <span>Bấm vào tên bài để xem nên học gì và tìm ở đâu.</span>
+              <span>Học xong, trả lời được câu tự kiểm tra bằng lời của mình thì tick ô bên trái.</span>
+            </div>
+          </div>
+        </div>
+        <label class="field ph-foot"><span>Ghi chú tuần này</span>
+          <textarea id="n-${p.id}" data-note="${p.id}" rows="2" maxlength="1000" placeholder="Ví dụ: bài 3 còn chưa rõ, hỏi lại thứ 5"></textarea></label>
+      </div>`;
+    root.appendChild(el);
+  }
+  root.addEventListener("change", e => {
+    const t = e.target;
+    if (t.dataset.item) op({ type: "check", phase: t.dataset.phase, item: t.dataset.item, on: t.checked });
+    else if (t.dataset.note) op({ type: "note", phase: t.dataset.note, value: t.value });
+  });
+}
+
+function buildFund() {
+  $("rates").insertAdjacentHTML("beforeend", FINES.map(([n, a, d]) => `<div class="rate${a ? "" : " pass"}" title="${d}"><span>${n}</span><b>${money(a)}</b></div>`).join(""));
+  $("f-type").innerHTML = FINES.map(([n], i) => `<option value="${i}">${n}</option>`).join("");
+  $("f-date").value = todayISO();
+  $("f-amt").value = FINES[0][1];
+  $("f-type").addEventListener("change", () => { $("f-amt").value = FINES[$("f-type").value][1]; });
+  $("fineForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const who = document.querySelector('input[name="who"]:checked').value;
+    const [type] = FINES[$("f-type").value];
+    if (type === PASS && passesUsed(who) >= MAX_PASS) return toast(`${nameOf(who)} đã dùng hết ${MAX_PASS} vé hoãn`, true);
+    op({ type: "addFine", fine: { date: $("f-date").value || todayISO(), who, type, amount: Number($("f-amt").value) || 0 } })
+      .then(() => toast(type === PASS ? "Đã dùng 1 vé hoãn" : "Đã ghi lỗi. Nhớ chuyển khoản rồi tick Đã nộp."));
+  });
+  for (const w of ["A", "B"]) $("person" + w).addEventListener("change", e => {
+    if (e.target.dataset.dep) op({ type: "deposit", who: e.target.dataset.dep, value: e.target.checked });
+  });
+  $("fines").addEventListener("change", e => { const id = e.target.dataset.paid; if (id) op({ type: "paid", id, value: e.target.checked }); });
+  $("fines").addEventListener("click", e => {
+    const b = e.target.closest("button.del");
+    if (!b) return;
+    if (!b.classList.contains("armed")) {
+      b.classList.add("armed"); b.textContent = "Xóa thật?";
+      setTimeout(() => { b.classList.remove("armed"); b.textContent = "Xóa"; }, 3000);
+      return;
+    }
+    op({ type: "delFine", id: b.dataset.id });
+  });
+}
+
+function buildSettings() {
+  $("nameA").addEventListener("change", e => op({ type: "name", who: "A", value: e.target.value }));
+  $("nameB").addEventListener("change", e => op({ type: "name", who: "B", value: e.target.value }));
+  $("start").addEventListener("change", e => op({ type: "start", value: e.target.value }));
+}
+
+/* ---------- Render ---------- */
+const setVal = (el, v) => { if (document.activeElement !== el && el.value !== v) el.value = v; };
+let firstRender = true;
+
+function render() {
+  const m = state.main;
+  setVal($("nameA"), (m.names && m.names.A) || "");
+  setVal($("nameB"), (m.names && m.names.B) || "");
+  setVal($("start"), m.start || "");
+  document.querySelectorAll("[data-name]").forEach(el => { el.textContent = nameOf(el.dataset.name); });
+  if (m.names && m.names.A && m.names.B) $("hello").textContent = `${m.names.A} & ${m.names.B} · Kế hoạch tự học`;
+
+  // Tuần & buổi tiếp theo
+  const wk = currentWeek(), today = todayISO(), dow = new Date().getDay();
+  if (wk === null) { $("k-week").textContent = "Chưa bắt đầu"; $("k-week-sub").textContent = "Đặt ngày bắt đầu trong phần Cài đặt"; }
+  else if (wk === 0) { $("k-week").textContent = "Sắp bắt đầu"; $("k-week-sub").textContent = `Còn ${dayNum(m.start) - dayNum(today)} ngày, bắt đầu ${viDate(m.start)}`; }
+  else if (wk > 9) { $("k-week").textContent = "Hết chu kỳ"; $("k-week-sub").textContent = "Đã hoàn thành 8 tuần"; }
+  else { $("k-week").textContent = wk === 9 ? "Tuần 9 · bổ sung" : `Tuần ${wk} / 8`; $("k-week-sub").textContent = `Bắt đầu ${viDate(m.start)}`; }
+  $("weekdots").innerHTML = Array.from({ length: 8 }, (_, i) => `<i class="${wk && i + 1 < wk ? "past" : wk === i + 1 ? "now" : ""}"></i>`).join("");
+  document.querySelectorAll("#week .day").forEach(d => d.classList.toggle("today", Number(d.dataset.dow) === dow));
+
+  let nextTxt = "—", nextSub = "";
+  if (wk === 0) { nextTxt = viDate(m.start); nextSub = "Buổi đầu tiên của lộ trình"; }
+  else if (wk !== null && wk <= 9) {
+    for (let k = 0; k < 7; k++) {
+      const d = (dow + k) % 7;
+      if (SESSIONS[d]) { nextTxt = k === 0 ? "Hôm nay" : k === 1 ? "Ngày mai" : `${DOW[d]} · còn ${k} ngày`; nextSub = `${SESSIONS[d][0]} · ${SESSIONS[d][1]}`; break; }
+    }
+  } else if (wk === null) nextSub = "Cần ngày bắt đầu";
+  $("k-next").textContent = nextTxt; $("k-next-sub").textContent = nextSub;
+
+  if (firstRender && !m.start) $("settings").open = true;
+
+  // Giai đoạn
+  let doneAll = 0, totalAll = 0;
+  for (const p of PHASES) {
+    const el = $(p.id), c = checkedOf(p.id), n = phaseCount(p), all = p.all.length;
+    for (const k of p.all) $(`c-${p.id}-${k}`).checked = !!c[k];
+    el.querySelector("[data-count]").textContent = `${n}/${all}`;
+    el.querySelector("[data-bar]").style.width = (n / all * 100) + "%";
+    const [cls, txt] = n === all ? ["done", "Đã xong"] : n ? ["doing", "Đang học"] : ["todo", "Chưa học"];
+    const st = el.querySelector("[data-status]"); st.className = "pill " + cls; st.textContent = txt;
+    const isNow = wk === p.n;
+    el.classList.toggle("current", isNow);
+    el.querySelector(".pill.now").hidden = !isNow;
+    if (firstRender) el.open = isNow || (!wk && p.n === 1);
+    setVal($("n-" + p.id), (m.notes && m.notes[p.id]) || "");
+    doneAll += n; totalAll += all;
+  }
+  $("k-done").textContent = doneAll;
+  $("k-total").textContent = totalAll;
+  $("k-bar").style.width = (doneAll / totalAll * 100) + "%";
+
+  // Quỹ
+  const fines = [...state.fines].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  const paid = fines.filter(f => f.paid).reduce((s, f) => s + fineAmt(f), 0);
+  const unpaid = fines.filter(f => !f.paid).reduce((s, f) => s + fineAmt(f), 0);
+  const dep = m.deposits || {};
+  const deposited = ["A", "B"].filter(w => dep[w]).length * DEPOSIT;
+  const owing = ["A", "B"].filter(w => !dep[w]).map(nameOf);
+  $("fund").textContent = money(deposited + paid);
+  $("k-fund").textContent = money(deposited + paid);
+  $("k-fund-sub").textContent = owing.length ? `Chưa đóng quỹ: ${owing.join(", ")}` : unpaid ? `Còn ${money(unpaid)} tiền phạt chưa nộp` : "Không ai nợ tiền";
+  $("fund-sub").textContent = `Tiền đóng ${money(deposited)}${paid ? ` + phạt đã nộp ${money(paid)}` : ""}${unpaid ? ` · còn ${money(unpaid)} phạt chưa nộp` : ""}. Mỗi người đóng ${money(DEPOSIT)}, tick "Đã đóng" sau khi chuyển khoản.`;
+
+  const tot = w => fines.filter(f => f.who === w).reduce((s, f) => s + fineAmt(f), 0);
+  for (const w of ["A", "B"]) {
+    const t = tot(w), o = tot(w === "A" ? "B" : "A"), used = passesUsed(w);
+    const cnt = fines.filter(f => f.who === w && fineAmt(f)).length;
+    const unp = fines.filter(f => f.who === w && !f.paid).reduce((s, f) => s + fineAmt(f), 0);
+    const el = $("person" + w);
+    el.innerHTML = `<div class="hd"><h3></h3>${t < o ? '<span class="pill done">Kỷ luật hơn</span>' : ""}</div>
+      <div class="row"><span class="muted">Đóng quỹ ${money(DEPOSIT)}</span><label class="paid"><input type="checkbox" id="dep-${w}" data-dep="${w}" ${dep[w] ? "checked" : ""}>Đã đóng</label></div>
+      <div class="row"><span class="muted">Số lần phạt</span><b>${cnt}</b></div>
+      <div class="row"><span class="muted">Tổng tiền phạt</span><b>${money(t)}</b></div>
+      <div class="row"><span class="muted">Chưa nộp</span><b class="${unp ? "dn" : ""}">${money(unp)}</b></div>
+      <div class="row"><span class="muted">Vé hoãn còn ${MAX_PASS - used}/${MAX_PASS}</span><span class="passes">${Array.from({ length: MAX_PASS }, (_, i) => `<i class="${i < used ? "used" : ""}"></i>`).join("")}</span></div>`;
+    el.querySelector("h3").textContent = nameOf(w);
+  }
+
+  const tb = $("fines");
+  if (!fines.length) tb.innerHTML = `<tr><td colspan="6" class="empty">Chưa có lỗi nào. Giữ được như vậy đến hết 8 tuần nhé.</td></tr>`;
+  else {
+    tb.innerHTML = fines.map(f => `<tr>
+      <td class="date">${viDate(f.date)}</td><td data-who></td><td data-type></td>
+      <td class="money${fineAmt(f) ? "" : " zero"}">${money(fineAmt(f))}</td>
+      <td>${fineAmt(f) ? `<label class="paid"><input type="checkbox" data-paid="${f.id}" ${f.paid ? "checked" : ""}>Đã nộp</label>` : '<span class="muted" style="font-size:13px">Vé hoãn</span>'}</td>
+      <td style="text-align:right"><button type="button" class="del" data-id="${f.id}">Xóa</button></td></tr>`).join("");
+    tb.querySelectorAll("tr").forEach((tr, i) => {
+      tr.querySelector("[data-who]").textContent = nameOf(fines[i].who);
+      tr.querySelector("[data-type]").textContent = fines[i].type;
+    });
+  }
+  firstRender = false;
+}
+
+function celebrate(before) {
+  if (state.v < 0 || firstRender) return;
+  for (const id of phaseDone()) if (!before.includes(id)) {
+    const p = PHASES.find(x => x.id === id);
+    toast(`Xong tuần ${p.n}: ${p.title}`);
+  }
+}
+
+buildPhases();
+buildFund();
+buildSettings();
+fetch("/api/state").then(r => r.json()).then(s => { state = s; render(); setSync("ok", "Đã đồng bộ"); })
+  .catch(() => { render(); setSync("err", "Không kết nối được server"); });
+setInterval(poll, 5000);
+document.addEventListener("visibilitychange", poll);
+</script>
+</body>
+</html>
