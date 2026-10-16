@@ -261,6 +261,10 @@ button.del.armed { background: var(--down); border-color: var(--down); color: va
 .pw-wrap input { padding: 12px 64px 12px 14px; font-size: 16px; }
 .pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); padding: 6px 10px; border: 0; background: transparent; color: var(--accent); font-size: 13px; }
 .login-hint { font-size: 13px; color: var(--muted); }
+.loading-card { padding: 28px 36px; display: grid; gap: 8px; justify-items: center; text-align: center; font-family: var(--font-display); font-size: 18px; }
+.loading-card .login-hint { font-family: var(--font-body); }
+.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(.9); opacity: .7; } }
 .shake { animation: shake .35s; }
 @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .toast {
@@ -448,6 +452,13 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 
 <footer>Ghi chép trên Notion, tiến độ và quỹ phạt trên trang này, họp qua Discord.</footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="login" id="loading" role="status" aria-live="polite">
+  <div class="card loading-card">
+    <svg class="login-logo pulse" width="44" height="44" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z" fill="var(--accent)"/><path d="M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z" fill="var(--flesh)"/><circle cx="16" cy="19" r="4.5" fill="var(--ceil)"/></svg>
+    <p>Đang mở sổ học…</p>
+    <span class="login-hint">Lần đầu có thể mất vài giây.</span>
+  </div>
+</div>
 <div class="login" id="login" hidden>
   <form class="card" id="loginForm">
     <svg class="login-logo" width="44" height="44" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z" fill="var(--accent)"/><path d="M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z" fill="var(--flesh)"/><circle cx="16" cy="19" r="4.5" fill="var(--ceil)"/></svg>
@@ -907,10 +918,16 @@ let pw = "";
 try { pw = localStorage.getItem(PW_KEY) || ""; } catch (e) {}
 
 // Không đặt Content-Type: gửi dạng text/plain để trình duyệt không cần hỏi trước (CORS preflight), Apps Script mới nhận được.
+// Nhớ trang có đặt mật khẩu hay không, để lần sau hiện khung mật khẩu ngay, khỏi chờ Google trả lời.
+const NEEDPW_KEY = "ck8-needpw";
+const rememberNeedPw = v => { try { localStorage.setItem(NEEDPW_KEY, v ? "1" : "0"); } catch (e) {} };
+const knownNeedPw = () => { try { return localStorage.getItem(NEEDPW_KEY) === "1"; } catch (e) { return false; } };
+
 async function call(o) {
   const r = await fetch(API_URL, { method: "POST", body: JSON.stringify({ pw, op: o }) });
   const data = await r.json();
-  if (data.auth === false) { showLogin(data.error); throw new Error("auth"); }
+  if (data.auth === false) { rememberNeedPw(true); showLogin(data.error); throw new Error("auth"); }
+  if (!pw) rememberNeedPw(false);
   return data;
 }
 let busy = Promise.resolve();
@@ -944,11 +961,13 @@ function load() {
   queue(async () => {
     try { state = await call({ type: "state" }); firstRender = true; render(); setSync("ok", "Đã đồng bộ"); }
     catch (e) { if (e.message !== "auth") setSync("err", "Không kết nối được Google Sheet"); }
+    $("loading").hidden = true;
   });
 }
 // Chỉ báo "chưa đúng" khi người dùng đã thật sự nhập mật khẩu; lần đầu mở trang thì chỉ mời nhập.
 function showLogin(msg) {
   const wrong = !!pw && msg === "Sai mật khẩu";
+  $("loading").hidden = true;
   $("login").hidden = false;
   $("login-msg").textContent = wrong ? "Mật khẩu chưa đúng, thử lại nhé." : msg && msg !== "Sai mật khẩu" ? msg : "Nhập mật khẩu chung để vào học.";
   $("login-msg").classList.toggle("err", wrong);
@@ -1243,7 +1262,8 @@ buildQuiz();
 buildFund();
 buildSettings();
 render();
-if (API_URL.includes("DÁN_LINK")) setSync("err", "Chưa dán link Apps Script vào API_URL");
+if (API_URL.includes("DÁN_LINK")) { $("loading").hidden = true; setSync("err", "Chưa dán link Apps Script vào API_URL"); }
+else if (!pw && knownNeedPw()) showLogin(); // đã biết cần mật khẩu: hiện ngay, không chờ Google
 else load(); // server chỉ đòi mật khẩu nếu đã đặt APP_PASSWORD
 setInterval(poll, 10000);
 document.addEventListener("visibilitychange", poll);
