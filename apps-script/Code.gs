@@ -86,10 +86,24 @@ function rows(key) {
 }
 const findRow = (key, match) => rows(key).findIndex(match);
 
+// Ghi một dòng mới: đặt dạng văn bản cho các cột chữ trước rồi mới ghi, để Sheets không tự đổi "2026-10-16" thành ngày tháng.
+function addRow(key, row) {
+  const s = sheet(key), r = s.getLastRow() + 1;
+  SHEETS[key].textCols.forEach(c => s.getRange(r, c).setNumberFormat("@"));
+  s.getRange(r, 1, 1, row.length).setValues([row]);
+}
+
+// Đọc ô: nếu Sheets đã lỡ đổi thành ngày tháng thì đổi lại về chuỗi "yyyy-MM-dd" (hoặc kèm giờ).
+const isDateObj = v => Object.prototype.toString.call(v) === "[object Date]";
+function txt(v, withTime) {
+  if (!isDateObj(v)) return String(v);
+  return Utilities.formatDate(v, Session.getScriptTimeZone(), withTime ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd");
+}
+
 function setSetting(k, v) {
   const i = findRow("settings", r => r[0] === k);
   if (i >= 0) sheet("settings").getRange(i + 2, 2).setValue(v);
-  else sheet("settings").appendRow([k, v, ""]);
+  else addRow("settings", [k, v, ""]);
 }
 
 function getV() { return Number(PropertiesService.getScriptProperties().getProperty("v")) || 0; }
@@ -97,7 +111,7 @@ function bumpV() { PropertiesService.getScriptProperties().setProperty("v", Stri
 
 function readState() {
   const set = {};
-  rows("settings").forEach(r => { set[r[0]] = String(r[1]); });
+  rows("settings").forEach(r => { set[r[0]] = txt(r[1]); });
   const main = {
     names: { A: set.nameA || "", B: set.nameB || "" },
     start: set.start || "",
@@ -105,14 +119,14 @@ function readState() {
     checked: {},
     notes: {},
   };
-  rows("progress").forEach(r => { (main.checked[r[0]] = main.checked[r[0]] || {})[r[1]] = String(r[3]) || true; });
-  rows("notes").forEach(r => { main.notes[r[0]] = String(r[1]); });
+  rows("progress").forEach(r => { (main.checked[r[0]] = main.checked[r[0]] || {})[r[1]] = txt(r[3], true) || true; });
+  rows("notes").forEach(r => { main.notes[r[0]] = txt(r[1]); });
   const fines = rows("fines").filter(r => r[0]).map(r => ({
-    id: String(r[0]), date: String(r[1]), who: String(r[2]), type: String(r[3]),
+    id: String(r[0]), date: txt(r[1]), who: String(r[2]), type: String(r[3]),
     amount: Number(r[4]) || 0, paid: r[5] === YES, createdAt: Number(r[6]) || 0,
   }));
   const docs = rows("docs").filter(r => r[0]).map(r => ({
-    id: String(r[0]), phase: String(r[1]), item: String(r[2]), name: String(r[3]), url: String(r[4]), who: String(r[5]), at: String(r[6]),
+    id: String(r[0]), phase: String(r[1]), item: String(r[2]), name: txt(r[3]), url: String(r[4]), who: String(r[5]), at: txt(r[6]),
   }));
   return { v: getV(), main, fines, docs };
 }
@@ -143,7 +157,7 @@ function checkDoc(d) {
   if (rows("docs").length >= MAX_DOCS) return "Đã đủ " + MAX_DOCS + " tài liệu, xóa bớt rồi thêm tiếp";
   return null;
 }
-const addDocRow = (d, url) => sheet("docs").appendRow([Utilities.getUuid(), d.phase, d.item, d.name.trim(), url, d.who, new Date().toISOString().slice(0, 10)]);
+const addDocRow = (d, url) => addRow("docs", [Utilities.getUuid(), d.phase, d.item, d.name.trim(), url, d.who, new Date().toISOString().slice(0, 10)]);
 
 function apply(op) {
   switch (op.type) {
@@ -159,7 +173,7 @@ function apply(op) {
     case "check": {
       if (WEEKS.indexOf(op.phase) < 0 || !isKey(op.item) || typeof op.on !== "boolean") return "Mục không hợp lệ";
       const i = findRow("progress", r => r[0] === op.phase && r[1] === op.item);
-      if (op.on && i < 0) sheet("progress").appendRow([op.phase, op.item, str(op.title, 200) ? op.title : "", new Date().toISOString()]);
+      if (op.on && i < 0) addRow("progress", [op.phase, op.item, str(op.title, 200) ? op.title : "", new Date().toISOString()]);
       if (!op.on && i >= 0) sheet("progress").deleteRow(i + 2);
       return null;
     }
@@ -167,7 +181,7 @@ function apply(op) {
       if (WEEKS.indexOf(op.phase) < 0 || !str(op.value, 1000)) return "Ghi chú quá dài";
       const i = findRow("notes", r => r[0] === op.phase);
       if (i >= 0) sheet("notes").getRange(i + 2, 2).setValue(op.value.trim());
-      else sheet("notes").appendRow([op.phase, op.value.trim()]);
+      else addRow("notes", [op.phase, op.value.trim()]);
       return null;
     }
     case "addFine": {
@@ -178,7 +192,7 @@ function apply(op) {
       const all = rows("fines");
       if (f.type === PASS && all.filter(r => r[2] === f.who && r[3] === PASS).length >= MAX_PASS) return "Đã dùng hết vé hoãn";
       if (all.length >= MAX_FINES) return "Sổ phạt đã đầy";
-      sheet("fines").appendRow([Utilities.getUuid(), f.date, f.who, f.type, amount, amount === 0 ? YES : "", String(Date.now())]);
+      addRow("fines", [Utilities.getUuid(), f.date, f.who, f.type, amount, amount === 0 ? YES : "", String(Date.now())]);
       return null;
     }
     case "paid": {

@@ -973,7 +973,7 @@ const money = n => (Number(n) || 0).toLocaleString("vi-VN") + "đ";
 const iso = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
 const todayISO = () => iso(new Date());
 const dayNum = s => Math.floor(Date.parse(s + "T00:00:00Z") / 864e5);
-const viDate = s => s ? s.split("-").reverse().join("/") : "";
+const viDate = s => /^\d{4}-\d{2}-\d{2}/.test(s || "") ? s.slice(0, 10).split("-").reverse().join("/") : ""; // chỉ nhận dạng năm-tháng-ngày
 
 let state = { v: -1, main: {}, fines: [] };
 const nameOf = w => (state.main.names && state.main.names[w]) || (w === "A" ? "Người A" : "Người B");
@@ -1345,7 +1345,7 @@ function renderDocs() {
       const kind = document.createElement("span"); kind.className = "doc-kind"; kind.textContent = docKind(d.url);
       const a = document.createElement("a"); a.textContent = d.name;
       if (/^https:\/\//i.test(d.url)) { a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; } // chỉ mở link https, kể cả khi ai đó sửa tay trong Sheet
-      const meta = document.createElement("span"); meta.className = "doc-meta"; meta.textContent = `${nameOf(d.who)}${d.at ? " · " + viDate(d.at) : ""}`;
+      const meta = document.createElement("span"); meta.className = "doc-meta"; meta.textContent = `${nameOf(d.who)}${viDate(d.at) ? " · " + viDate(d.at) : ""}`;
       const del = document.createElement("button"); del.type = "button"; del.className = "del del-doc"; del.dataset.id = d.id; del.textContent = "Xóa";
       li.append(kind, a, meta, del);
       return li;

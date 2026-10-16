@@ -20,6 +20,7 @@ function fakeSheet() {
 
 const sheets = {}, props = { APP_PASSWORD: "matkhau" }, folders = {}, files = [];
 const ctx = {
+  Session: { getScriptTimeZone: () => "Asia/Ho_Chi_Minh" },
   SpreadsheetApp: { getActive: () => ({ getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = fakeSheet()) }) },
   PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null, setProperty: (k, v) => { props[k] = v; } }) },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
@@ -28,6 +29,10 @@ const ctx = {
     getUuid: () => require("node:crypto").randomUUID(),
     base64Decode: s => [...Buffer.from(s, "base64")].map(b => (b > 127 ? b - 256 : b)), // Apps Script trả byte có dấu
     newBlob: (bytes, type, name) => ({ bytes, type, name }),
+    formatDate: (d, tz, fmt) => {
+      const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(d).map(x => [x.type, x.value]));
+      return fmt.includes("HH") ? `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}` : `${p.year}-${p.month}-${p.day}`;
+    },
   },
   DriveApp: {
     Access: { ANYONE_WITH_LINK: "ANYONE_WITH_LINK" }, Permission: { VIEW: "VIEW" },
@@ -98,7 +103,18 @@ call({ type: "uploadDoc", doc, file: { name: "b/c.pdf", type: "application/pdf",
 assert.strictEqual(Object.keys(folders).length, 1, "dùng lại thư mục cũ");
 assert.strictEqual(files[1].blob.name, "b_c.pdf", "bỏ ký tự không hợp lệ trong tên file");
 
+// Sheets có khi tự đổi chuỗi ngày thành Date: đọc ra phải về lại "yyyy-MM-dd"
+call({ type: "addFine", fine: { who: "A", type: "Trễ giờ", date: "2026-10-16", amount: 50000 } });
+const fineRow = sheets["Quỹ phạt"].data.length - 1, docRow = 1;
+sheets["Quỹ phạt"].data[fineRow][1] = new Date("2026-10-16T00:00:00+07:00");
+sheets["Tài liệu"].data[docRow][6] = new Date("2026-10-16T00:00:00+07:00");
+sheets["Cài đặt"].data[3][1] = new Date("2026-10-12T00:00:00+07:00");
+s = call({ type: "state" });
+assert.strictEqual(s.fines.find(f => f.amount === 50000 && f.who === "A" && f.date.startsWith("2026-10-16")).date, "2026-10-16");
+assert.strictEqual(s.docs[0].at, "2026-10-16");
+assert.strictEqual(s.main.start, "2026-10-12");
+
 delete props.APP_PASSWORD; // không đặt mật khẩu: ai cũng dùng được
-assert.strictEqual(call({ type: "state" }, "").fines.length, 2);
+assert.strictEqual(call({ type: "state" }, "").fines.length, 3);
 assert.strictEqual(call({ type: "state" }, "").docs.length, 2);
 console.log("OK: tất cả kiểm tra đều qua");
