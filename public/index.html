@@ -206,7 +206,6 @@ details.ls[open] .hint::after { content: "Thu gọn ▴"; }
 .quiz-side select { padding: 6px 8px; font-size: 13.5px; background: var(--surface); }
 .quiz .mcq { margin-top: 4px; }
 .mcq { display: grid; gap: 8px; }
-.mcq-q { font-weight: 600; }
 .mcq-opts { display: grid; gap: 6px; }
 .mcq-opt { display: flex; gap: 10px; align-items: baseline; text-align: left; font-weight: 500; padding: 9px 12px; border-radius: 12px; background: var(--surface); }
 .mcq-opt b { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); flex: none; }
@@ -215,15 +214,10 @@ details.ls[open] .hint::after { content: "Thu gọn ▴"; }
 .mcq-opt.right { background: var(--accent-soft); border-color: var(--accent); }
 .mcq-opt.wrong { background: var(--down-soft); border-color: var(--down); }
 .mcq-fb { font-size: 13.5px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px dashed var(--line); }
-.mcq-fb b, .ls-body .mcq-fb b { display: block; margin-bottom: 2px; font-size: 14px; text-transform: none; letter-spacing: 0; }
-.ls-body .mcq-opt b { display: inline; margin: 0; text-transform: none; }
+.mcq-fb b { display: block; margin-bottom: 2px; }
 .mcq-fb.ok b { color: var(--accent); }
 .mcq-fb.no b { color: var(--down); }
 .mcq-fb .src { display: block; margin-top: 4px; color: var(--muted); font-size: 12.5px; }
-details.mcqs { border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 10px 14px; }
-details.mcqs > summary { cursor: pointer; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
-.mcq-list { display: grid; gap: 18px; margin-top: 12px; }
-.q-count { margin-left: 6px; color: var(--ceil); background: var(--ceil-soft); }
 .lib-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; }
 .lib-head > div { display: grid; gap: 6px; }
 .lib { padding: 8px 18px; }
@@ -1188,14 +1182,13 @@ function buildPhases() {
             <ul class="check">${p.items.map(([k, t, q, learn, find], i) => `<li class="lesson">
               <input type="checkbox" id="c-${p.id}-${k}" data-phase="${p.id}" data-item="${k}" aria-label="Đã học xong bài ${i + 1}">
               <details class="ls">
-                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="doc-count" data-doccount="${p.id}.${k}" hidden></span><span class="doc-count q-count" data-qcount="${p.id}.${k}" hidden></span><span class="hint">Xem gợi ý</span></summary>
+                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="doc-count" data-doccount="${p.id}.${k}" hidden></span><span class="hint">Xem gợi ý</span></summary>
                 <div class="ls-body">
                   <div class="docs" data-docs="${p.id}.${k}"><b>Tài liệu của tụi mình</b>
                     <ul class="doc-list"></ul>
                     <span class="doc-empty">Chưa có tài liệu nào.</span>
                     <button type="button" class="add-doc" data-lesson="${p.id}.${k}">+ Thêm tài liệu</button>
                   </div>
-                  <details class="mcqs" data-mcqs="${p.id}.${k}" hidden><summary>Câu hỏi trắc nghiệm từ tài liệu</summary><div class="mcq-list"></div></details>
                   <div><b>Học về gì</b><ul>${learn.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div><b>Tìm ở đâu</b><ul>${find.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div class="ls-q"><b>Tự kiểm tra</b>${q}</div>
@@ -1273,17 +1266,16 @@ function buildQuiz() {
     last = pick.key;
     $("quiz-kind").textContent = pick.mcq ? "Đố vui · Trắc nghiệm" : "Đố vui · Tự kiểm tra";
     $("quiz-q").textContent = pick.q;
-    if (pick.mcq) $("quiz-mcq").append(mcqEl(pick.mcq, false));
+    if (pick.mcq) $("quiz-mcq").append(mcqEl(pick.mcq));
     $("quiz-from").textContent = "Từ bài: " + pick.from;
   });
 }
 
 /* ---------- Câu hỏi trắc nghiệm ---------- */
 const LETTERS = ["A", "B", "C", "D"];
-// Dựng một câu trắc nghiệm: bấm một lựa chọn là chấm ngay, hiện giải thích và nguồn.
-function mcqEl(x, withQuestion) {
+// Câu trắc nghiệm chỉ hiện trong ô Đố vui khi bấm "Bốc câu hỏi": bấm một lựa chọn là chấm ngay, hiện giải thích và nguồn.
+function mcqEl(x) {
   const box = document.createElement("div"); box.className = "mcq"; box.dataset.qid = x.id;
-  if (withQuestion) { const h = document.createElement("p"); h.className = "mcq-q"; h.textContent = x.q; box.append(h); }
   const opts = document.createElement("div"); opts.className = "mcq-opts";
   x.opts.forEach((o, i) => {
     const b = document.createElement("button"); b.type = "button"; b.className = "mcq-opt"; b.dataset.l = LETTERS[i];
@@ -1310,22 +1302,6 @@ document.addEventListener("click", e => {
   if (x.why) fb.append(x.why);
   if (x.src) { const s2 = document.createElement("span"); s2.className = "src"; s2.textContent = "Nguồn: " + x.src; fb.append(s2); }
 });
-
-// Chỉ dựng lại câu hỏi trong bài khi danh sách câu hỏi thay đổi, để không xóa mất câu hai bạn đang làm dở.
-let lastQSig = "";
-function renderQuestions() {
-  const qs = state.questions || [], sig = qs.map(q => q.id).join(",");
-  if (sig === lastQSig) return;
-  lastQSig = sig;
-  document.querySelectorAll("[data-mcqs]").forEach(box => {
-    const key = box.dataset.mcqs, mine = qs.filter(q => `${q.phase}.${q.item}` === key);
-    box.hidden = !mine.length;
-    box.querySelector("summary").textContent = `Câu hỏi trắc nghiệm từ tài liệu (${mine.length})`;
-    box.querySelector(".mcq-list").replaceChildren(...mine.map(x => mcqEl(x, true)));
-    const c = document.querySelector(`[data-qcount="${key}"]`);
-    c.hidden = !mine.length; c.textContent = `${mine.length} câu hỏi`;
-  });
-}
 
 /* ---------- Thư viện tài liệu ---------- */
 function gotoLesson(key) {
@@ -1612,7 +1588,6 @@ function render() {
   $("k-total").textContent = totalAll;
   $("k-bar").style.width = (doneAll / totalAll * 100) + "%";
   renderDocs();
-  renderQuestions();
   renderLib();
 
   // Quỹ
