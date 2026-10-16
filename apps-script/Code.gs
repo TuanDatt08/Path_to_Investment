@@ -7,6 +7,7 @@ const PASS = "Dùng vé hoãn";
 const MAX_PASS = 2;
 const MAX_FINES = 500;
 const MAX_DOCS = 500;
+const MAX_QUESTIONS = 1000;
 const MAX_PDF = 20 * 1024 * 1024; // 20MB mỗi file PDF tải thẳng lên
 const DOCS_FOLDER = "Tài liệu chứng khoán";
 let WARN = ""; // cảnh báo không chặn thao tác, gửi kèm kết quả cho trang web
@@ -20,7 +21,8 @@ const SHEETS = {
   progress: { name: "Tiến độ", head: ["Tuần", "Bài", "Tên bài", "Tick lúc"], textCols: [1, 2, 3, 4] },
   notes: { name: "Ghi chú", head: ["Tuần", "Ghi chú"], textCols: [1, 2] },
   fines: { name: "Quỹ phạt", head: ["ID", "Ngày", "Người", "Lỗi", "Số tiền", "Đã nộp", "Tạo lúc"], textCols: [1, 2, 3, 4, 6, 7] },
-  docs: { name: "Tài liệu", head: ["ID", "Tuần", "Bài", "Tên", "Link", "Người thêm", "Ngày thêm"], textCols: [1, 2, 3, 4, 5, 6, 7] },
+  docs: { name: "Tài liệu", head: ["ID", "Tuần", "Bài", "Tên", "Link", "Người thêm", "Ngày thêm", "Drive ID"], textCols: [1, 2, 3, 4, 5, 6, 7, 8] },
+  questions: { name: "Câu hỏi", head: ["ID", "Tuần", "Bài", "Câu hỏi", "A", "B", "C", "D", "Đáp án", "Giải thích", "Nguồn", "Drive ID", "Ngày tạo"], textCols: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] },
 };
 const SETTINGS_ROWS = [
   ["nameA", "", "Tên người A"],
@@ -75,6 +77,11 @@ function sheet(key) {
     s.getRange(1, 1, 1, def.head.length).setValues([def.head]).setFontWeight("bold");
     s.setFrozenRows(1);
     if (key === "settings") s.getRange(2, 1, SETTINGS_ROWS.length, 3).setValues(SETTINGS_ROWS);
+  } else if (s.getLastColumn() < def.head.length) {
+    // Bảng tạo từ bản cũ, thiếu cột mới (ví dụ "Drive ID"): bổ sung tiêu đề và định dạng.
+    const last = s.getLastColumn();
+    def.textCols.forEach(c => { if (c > last) s.getRange(1, c, s.getMaxRows(), 1).setNumberFormat("@"); });
+    s.getRange(1, 1, 1, def.head.length).setValues([def.head]).setFontWeight("bold");
   }
   return s;
 }
@@ -109,6 +116,30 @@ function setSetting(k, v) {
 function getV() { return Number(PropertiesService.getScriptProperties().getProperty("v")) || 0; }
 function bumpV() { PropertiesService.getScriptProperties().setProperty("v", String(getV() + 1)); }
 
+/* ---------- File trên Drive: còn hay đã xóa ---------- */
+// Lấy ID file từ link Drive/Docs; link khác (YouTube, báo...) trả về "".
+function driveIdOf(url) {
+  const m = /drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]{20,})/.exec(url) || /docs\.google\.com\/\w+\/d\/([\w-]{20,})/.exec(url);
+  return m ? m[1] : "";
+}
+// Chỉ trả ID nếu script mở được file, để không bao giờ ẩn nhầm link tới file của người khác.
+function accessibleId(url) {
+  const id = driveIdOf(url);
+  if (!id) return "";
+  try { DriveApp.getFileById(id); return id; } catch (e) { return ""; }
+}
+// Tình trạng file (đã vào Thùng rác / bị xóa hẳn) và tên file. Lưu tạm 2 phút cho đỡ chậm.
+// ponytail: file vừa xóa có thể còn hiện tối đa 2 phút; cần tức thì thì bỏ cache.
+function driveInfo(id) {
+  const cache = CacheService.getScriptCache(), key = "f:" + id, hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+  let info;
+  try { const f = DriveApp.getFileById(id); info = { gone: f.isTrashed(), name: f.getName() }; }
+  catch (e) { info = { gone: true, name: "" }; }
+  cache.put(key, JSON.stringify(info), 120);
+  return info;
+}
+
 function readState() {
   const set = {};
   rows("settings").forEach(r => { set[r[0]] = txt(r[1]); });
@@ -125,10 +156,25 @@ function readState() {
     id: String(r[0]), date: txt(r[1]), who: String(r[2]), type: String(r[3]),
     amount: Number(r[4]) || 0, paid: r[5] === YES, createdAt: Number(r[6]) || 0,
   }));
-  const docs = rows("docs").filter(r => r[0]).map(r => ({
-    id: String(r[0]), phase: String(r[1]), item: String(r[2]), name: txt(r[3]), url: String(r[4]), who: String(r[5]), at: txt(r[6]),
+  // Tài liệu và câu hỏi gắn với file Drive đã bị xóa thì ẩn đi (dòng vẫn giữ trong Sheet, khôi phục file là hiện lại).
+  const alive = id => !id || !driveInfo(id).gone;
+  const docRows = rows("docs");
+  const docs = docRows.map((r, i) => {
+    if (!r[0]) return null;
+    let fid = String(r[7] || "");
+    if (!fid && driveIdOf(String(r[4]))) { // dòng cũ chưa có Drive ID: bổ sung một lần
+      fid = accessibleId(String(r[4]));
+      if (fid) sheet("docs").getRange(i + 2, 8).setValue(fid);
+    }
+    if (!alive(fid)) return null;
+    return { id: String(r[0]), phase: String(r[1]), item: String(r[2]), name: txt(r[3]), url: String(r[4]), who: String(r[5]), at: txt(r[6]),
+      fid, file: fid ? driveInfo(fid).name : "" };
+  }).filter(Boolean);
+  const questions = rows("questions").filter(r => r[0] && alive(String(r[11] || ""))).map(r => ({
+    id: String(r[0]), phase: String(r[1]), item: String(r[2]), q: txt(r[3]),
+    opts: [txt(r[4]), txt(r[5]), txt(r[6]), txt(r[7])], ans: String(r[8]), why: txt(r[9]), src: txt(r[10]), fid: String(r[11] || ""),
   }));
-  return { v: getV(), main, fines, docs };
+  return { v: getV(), main, fines, docs, questions };
 }
 
 /* ---------- Thao tác (kiểm tra kỹ vì đây là ranh giới tin cậy) ---------- */
@@ -157,7 +203,18 @@ function checkDoc(d) {
   if (rows("docs").length >= MAX_DOCS) return "Đã đủ " + MAX_DOCS + " tài liệu, xóa bớt rồi thêm tiếp";
   return null;
 }
-const addDocRow = (d, url) => addRow("docs", [Utilities.getUuid(), d.phase, d.item, d.name.trim(), url, d.who, new Date().toISOString().slice(0, 10)]);
+const addDocRow = (d, url, fid) => addRow("docs", [Utilities.getUuid(), d.phase, d.item, d.name.trim(), url, d.who, new Date().toISOString().slice(0, 10), fid || ""]);
+
+// Một câu trắc nghiệm: 4 lựa chọn A–D, 1 đáp án đúng, giải thích và nguồn.
+function checkQuestion(x) {
+  if (!x || WEEKS.indexOf(x.phase) < 0 || !isKey(x.item)) return "Câu hỏi gắn vào bài không hợp lệ";
+  if (!str(x.q, 300) || !x.q.trim()) return "Nội dung câu hỏi phải có từ 1 đến 300 ký tự";
+  if (!Array.isArray(x.opts) || x.opts.length !== 4 || x.opts.some(o => !str(o, 200) || !o.trim())) return "Cần đủ 4 lựa chọn A–D, mỗi lựa chọn tối đa 200 ký tự";
+  if (["A", "B", "C", "D"].indexOf(x.ans) < 0) return "Đáp án phải là A, B, C hoặc D";
+  if (!str(x.why || "", 600) || !str(x.src || "", 200)) return "Giải thích hoặc nguồn quá dài";
+  if (x.fid && !/^[\w-]{20,}$/.test(x.fid)) return "Drive ID không hợp lệ";
+  return null;
+}
 
 function apply(op) {
   switch (op.type) {
@@ -211,7 +268,7 @@ function apply(op) {
       const d = op.doc || {};
       const bad = checkDoc(d) || (!isUrl(d.url) && "Link phải bắt đầu bằng https://");
       if (bad) return bad;
-      addDocRow(d, d.url);
+      addDocRow(d, d.url, accessibleId(d.url));
       return null;
     }
     case "uploadDoc": {
@@ -227,7 +284,22 @@ function apply(op) {
       const file = docsFolder().createFile(Utilities.newBlob(bytes, "application/pdf", fname));
       try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }
       catch (e) { WARN = "Đã lưu file nhưng chưa bật được chia sẻ bằng link. Người kia có thể phải xin quyền xem trên Drive."; }
-      addDocRow(d, file.getUrl());
+      addDocRow(d, file.getUrl(), file.getId());
+      return null;
+    }
+    case "addQuestions": {
+      const list = op.items;
+      if (!Array.isArray(list) || !list.length || list.length > 50) return "Gửi từ 1 đến 50 câu hỏi mỗi lần";
+      for (let i = 0; i < list.length; i++) { const bad = checkQuestion(list[i]); if (bad) return "Câu " + (i + 1) + ": " + bad; }
+      if (rows("questions").length + list.length > MAX_QUESTIONS) return "Đã đủ " + MAX_QUESTIONS + " câu hỏi";
+      const today = new Date().toISOString().slice(0, 10);
+      list.forEach(x => addRow("questions", [Utilities.getUuid(), x.phase, x.item, x.q.trim(), ...x.opts.map(o => o.trim()), x.ans, (x.why || "").trim(), (x.src || "").trim(), x.fid || "", today]));
+      return null;
+    }
+    case "delQuestion": {
+      const i = findRow("questions", r => r[0] === op.id);
+      if (i < 0) return "Không tìm thấy câu hỏi";
+      sheet("questions").deleteRow(i + 2);
       return null;
     }
     case "delDoc": {

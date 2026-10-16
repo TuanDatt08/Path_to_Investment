@@ -14,13 +14,14 @@ function fakeSheet() {
     setValues(vals) { vals.forEach((row, i) => row.forEach((v, j) => { (data[r - 1 + i] = data[r - 1 + i] || [])[c - 1 + j] = v; })); return this; },
     getValues() { return Array.from({ length: nr }, (_, i) => Array.from({ length: nc }, (_, j) => (data[r - 1 + i] || [])[c - 1 + j] ?? "")); },
   });
-  return { data, getRange: range, getMaxRows: () => 1000, setFrozenRows() {}, getLastRow: () => data.length,
+  return { data, getRange: range, getMaxRows: () => 1000, setFrozenRows() {}, getLastRow: () => data.length, getLastColumn: () => (data[0] || []).length,
     appendRow(row) { data.push([...row]); }, deleteRow(i) { data.splice(i - 1, 1); } };
 }
 
-const sheets = {}, props = { APP_PASSWORD: "matkhau" }, folders = {}, files = [];
+const sheets = {}, props = { APP_PASSWORD: "matkhau" }, folders = {}, files = [], cache = new Map();
 const ctx = {
   Session: { getScriptTimeZone: () => "Asia/Ho_Chi_Minh" },
+  CacheService: { getScriptCache: () => ({ get: k => cache.get(k) ?? null, put: (k, v) => cache.set(k, v) }) },
   SpreadsheetApp: { getActive: () => ({ getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = fakeSheet()) }) },
   PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null, setProperty: (k, v) => { props[k] = v; } }) },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
@@ -37,10 +38,16 @@ const ctx = {
   DriveApp: {
     Access: { ANYONE_WITH_LINK: "ANYONE_WITH_LINK" }, Permission: { VIEW: "VIEW" },
     getFolderById: id => { if (!folders[id]) throw new Error("not found"); return folders[id]; },
+    getFileById: id => { const f = files.find(x => x.getId() === id); if (!f) throw new Error("No item with the given ID could be found"); return f; },
     createFolder: name => {
       const id = "fd" + Object.keys(folders).length;
       return (folders[id] = { name, files, getId: () => id, isTrashed: () => false,
-        createFile: blob => { const fid = "f" + files.length; const f = { blob, sharing: null, setSharing(a, p) { this.sharing = a + ":" + p; }, getUrl: () => `https://drive.google.com/file/d/${fid}/view` }; files.push(f); return f; } });
+        createFile: blob => {
+          const fid = "file" + String(files.length).padStart(20, "0");
+          const f = { blob, trashed: false, sharing: null, setSharing(a, p) { this.sharing = a + ":" + p; }, getId: () => fid, getName() { return this.blob.name; },
+            isTrashed() { return this.trashed; }, getUrl: () => `https://drive.google.com/file/d/${fid}/view` };
+          files.push(f); return f;
+        } });
     },
   },
 };
@@ -96,6 +103,8 @@ s = call({ type: "uploadDoc", doc, file: { name: "FPT 2025.pdf", type: "applicat
 assert.ok(!s.error, s.error);
 assert.strictEqual(s.docs.length, 1);
 assert.ok(s.docs[0].url.startsWith("https://drive.google.com/file/d/"), s.docs[0].url);
+assert.strictEqual(s.docs[0].fid, files[0].getId(), "lưu Drive ID khi tải PDF lên");
+assert.strictEqual(s.docs[0].file, "FPT 2025.pdf", "trả về tên file Drive");
 assert.deepStrictEqual([s.docs[0].phase, s.docs[0].item, s.docs[0].name], ["w7", "m1", "Báo cáo tài chính FPT"]);
 assert.strictEqual(files[0].blob.name, "FPT 2025.pdf");
 assert.strictEqual(files[0].sharing, "ANYONE_WITH_LINK:VIEW");
@@ -114,7 +123,45 @@ assert.strictEqual(s.fines.find(f => f.amount === 50000 && f.who === "A" && f.da
 assert.strictEqual(s.docs[0].at, "2026-10-16");
 assert.strictEqual(s.main.start, "2026-10-12");
 
+// Dán link Drive: nhận ra file mở được thì lưu Drive ID; link tới file không mở được thì không lưu (không bao giờ bị ẩn)
+s = call({ type: "addDoc", doc: { phase: "w6", item: "m1", name: "Sách bảng giá", url: files[0].getUrl().replace("/view", "/view?usp=sharing"), who: "B" } });
+assert.strictEqual(s.docs.find(d => d.name === "Sách bảng giá").fid, files[0].getId());
+s = call({ type: "addDoc", doc: { phase: "w6", item: "m2", name: "File người khác", url: "https://drive.google.com/file/d/AAAAAAAAAAAAAAAAAAAAAAAA/view", who: "B" } });
+assert.strictEqual(s.docs.find(d => d.name === "File người khác").fid, "");
+
+// Câu hỏi trắc nghiệm
+const q1 = { phase: "w7", item: "m1", q: "Báo cáo tài chính gồm mấy báo cáo chính?", opts: ["1", "2", "3", "5"], ans: "C", why: "Cân đối, kết quả kinh doanh, lưu chuyển tiền tệ", src: "Sách A–Z", fid: files[0].getId() };
+const q2 = { phase: "w5", item: "m1", q: "Mua cổ phiếu là?", opts: ["Cho vay", "Làm chủ một phần", "Gửi tiết kiệm", "Mua vàng"], ans: "B", why: "", src: "" };
+assert.ok(call({ type: "addQuestions", items: [{ ...q1, ans: "E" }] }).error, "chặn đáp án ngoài A–D");
+assert.ok(call({ type: "addQuestions", items: [{ ...q1, opts: ["1", "2", "3"] }] }).error, "chặn thiếu lựa chọn");
+assert.ok(call({ type: "addQuestions", items: [{ ...q1, phase: "x1" }] }).error, "chặn tuần lạ");
+assert.ok(call({ type: "addQuestions", items: [] }).error, "chặn danh sách rỗng");
+s = call({ type: "addQuestions", items: [q1, q2] });
+assert.ok(!s.error, s.error);
+assert.strictEqual(s.questions.length, 2);
+assert.deepStrictEqual(s.questions[0].opts, ["1", "2", "3", "5"]);
+assert.strictEqual(s.questions[0].ans, "C");
+
+// Xóa file trên Drive (vào Thùng rác): ẩn mọi link và câu hỏi của file đó; khôi phục thì hiện lại
+const before = s.docs.filter(d => d.fid === files[0].getId()).length;
+assert.ok(before >= 2);
+files[0].trashed = true; cache.clear();
+s = call({ type: "state" });
+assert.strictEqual(s.docs.filter(d => d.fid === files[0].getId()).length, 0, "ẩn link của file đã xóa");
+assert.ok(s.docs.some(d => d.name === "File người khác"), "không ẩn link tới file không kiểm tra được");
+assert.strictEqual(s.questions.length, 1, "ẩn câu hỏi của file đã xóa");
+files[0].trashed = false; cache.clear();
+s = call({ type: "state" });
+assert.strictEqual(s.docs.filter(d => d.fid === files[0].getId()).length, before, "khôi phục file thì hiện lại");
+assert.strictEqual(s.questions.length, 2);
+assert.strictEqual(call({ type: "delQuestion", id: s.questions[1].id }).questions.length, 1);
+
+// Bảng "Tài liệu" tạo từ bản cũ (7 cột): tự thêm cột "Drive ID"
+sheets["Tài liệu"].data[0].length = 7;
+call({ type: "state" });
+assert.strictEqual(sheets["Tài liệu"].data[0][7], "Drive ID");
+
 delete props.APP_PASSWORD; // không đặt mật khẩu: ai cũng dùng được
 assert.strictEqual(call({ type: "state" }, "").fines.length, 3);
-assert.strictEqual(call({ type: "state" }, "").docs.length, 2);
+assert.strictEqual(call({ type: "state" }, "").docs.length, 4);
 console.log("OK: tất cả kiểm tra đều qua");

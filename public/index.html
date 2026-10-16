@@ -201,6 +201,41 @@ details.ls[open] .hint::after { content: "Thu gọn ▴"; }
 .quiz-text .label { margin: 0; }
 .quiz-q { font-family: var(--font-display); font-size: 19px; line-height: 1.4; }
 .quiz-text .muted { font-size: 13px; }
+.quiz-side { display: grid; gap: 8px; flex: 0 1 220px; min-width: 0; }
+.quiz-side .field > span { font-size: 11.5px; }
+.quiz-side select { padding: 6px 8px; font-size: 13.5px; background: var(--surface); }
+.quiz .mcq { margin-top: 4px; }
+.mcq { display: grid; gap: 8px; }
+.mcq-q { font-weight: 600; }
+.mcq-opts { display: grid; gap: 6px; }
+.mcq-opt { display: flex; gap: 10px; align-items: baseline; text-align: left; font-weight: 500; padding: 9px 12px; border-radius: 12px; background: var(--surface); }
+.mcq-opt b { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent); flex: none; }
+.mcq-opt:hover:not(:disabled) { border-color: var(--accent); }
+.mcq-opt:disabled { cursor: default; opacity: 1; }
+.mcq-opt.right { background: var(--accent-soft); border-color: var(--accent); }
+.mcq-opt.wrong { background: var(--down-soft); border-color: var(--down); }
+.mcq-fb { font-size: 13.5px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px dashed var(--line); }
+.mcq-fb b, .ls-body .mcq-fb b { display: block; margin-bottom: 2px; font-size: 14px; text-transform: none; letter-spacing: 0; }
+.ls-body .mcq-opt b { display: inline; margin: 0; text-transform: none; }
+.mcq-fb.ok b { color: var(--accent); }
+.mcq-fb.no b { color: var(--down); }
+.mcq-fb .src { display: block; margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+details.mcqs { border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 10px 14px; }
+details.mcqs > summary { cursor: pointer; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.mcq-list { display: grid; gap: 18px; margin-top: 12px; }
+.q-count { margin-left: 6px; color: var(--ceil); background: var(--ceil-soft); }
+.lib-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; justify-content: space-between; }
+.lib-head > div { display: grid; gap: 6px; }
+.lib { padding: 8px 18px; }
+.lib-item { display: grid; gap: 6px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.lib-item:last-child { border-bottom: 0; }
+.lib-title { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; min-width: 0; }
+.lib-title a { font-weight: 600; color: var(--fg); overflow-wrap: anywhere; text-underline-offset: 3px; text-decoration-color: var(--line); }
+.lib-title a:hover { text-decoration-color: var(--accent); }
+.lib-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lib-chip { padding: 2px 10px; font-size: 12px; font-weight: 500; border-radius: 999px; background: var(--surface-2); }
+.lib-chip:hover { border-color: var(--accent); color: var(--accent); }
+.lib-empty { padding: 14px 0; color: var(--muted); font-size: 14px; }
 .track-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
 .add-doc { padding: 6px 14px; font-size: 13.5px; font-weight: 600; color: var(--accent); border: 1px dashed var(--accent); border-radius: 999px; background: transparent; justify-self: start; }
 .add-doc:hover { background: var(--accent-soft); }
@@ -341,7 +376,7 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
       <span>VN-HỌC</span>
     </div>
     <div class="links">
-      <a href="#tong-quan">Tổng quan</a><a href="#lich">Lịch</a><a href="#lo-trinh">Lộ trình</a><a href="#quy">Quỹ</a>
+      <a href="#tong-quan">Tổng quan</a><a href="#tai-lieu">Tài liệu</a><a href="#lich">Lịch</a><a href="#lo-trinh">Lộ trình</a><a href="#quy">Quỹ</a>
     </div>
     <span class="nav-right"><span class="sync" id="sync">Đang kết nối…</span><button type="button" class="logout" id="logout" hidden>Đăng xuất</button></span>
   </div>
@@ -390,6 +425,18 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     </details>
   </section>
 
+  <section id="tai-lieu">
+    <div class="section-head lib-head">
+      <div>
+        <span class="eyebrow">Thư viện</span>
+        <h2>Tài liệu đã tải lên</h2>
+        <p>Mọi tài liệu hai bạn đã gắn vào bài. Bấm tên để mở file, bấm nhãn bài để đến đúng bài đó.</p>
+      </div>
+      <button type="button" class="add-doc" id="add-doc-btn2">+ Thêm tài liệu</button>
+    </div>
+    <div class="card lib" id="lib"></div>
+  </section>
+
   <section id="lich">
     <div class="section-head">
       <span class="eyebrow">Lịch cố định</span>
@@ -422,11 +469,18 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     <div id="track-basic" class="track">
       <div class="card quiz">
         <div class="quiz-text">
-          <span class="label">Đố vui</span>
-          <p class="quiz-q" id="quiz-q">Bấm nút để bốc ngẫu nhiên một câu hỏi từ những bài hai bạn đã tick.</p>
+          <span class="label" id="quiz-kind">Đố vui</span>
+          <p class="quiz-q" id="quiz-q">Bấm nút để bốc ngẫu nhiên một câu hỏi.</p>
+          <div id="quiz-mcq"></div>
           <span class="muted" id="quiz-from"></span>
         </div>
-        <button type="button" class="primary" id="quiz-btn">Bốc câu hỏi</button>
+        <div class="quiz-side">
+          <label class="field"><span>Bốc từ</span>
+            <select id="quiz-scope"><option value="done">Bài đã tick</option><option value="week">Tuần này</option><option value="all">Tất cả các bài</option></select></label>
+          <label class="field"><span>Loại câu hỏi</span>
+            <select id="quiz-type"><option value="all">Tất cả</option><option value="mcq">Trắc nghiệm</option><option value="self">Tự kiểm tra</option></select></label>
+          <button type="button" class="primary" id="quiz-btn">Bốc câu hỏi</button>
+        </div>
       </div>
       <div class="phases" id="phases"></div>
     </div>
@@ -1134,13 +1188,14 @@ function buildPhases() {
             <ul class="check">${p.items.map(([k, t, q, learn, find], i) => `<li class="lesson">
               <input type="checkbox" id="c-${p.id}-${k}" data-phase="${p.id}" data-item="${k}" aria-label="Đã học xong bài ${i + 1}">
               <details class="ls">
-                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="doc-count" data-doccount="${p.id}.${k}" hidden></span><span class="hint">Xem gợi ý</span></summary>
+                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="doc-count" data-doccount="${p.id}.${k}" hidden></span><span class="doc-count q-count" data-qcount="${p.id}.${k}" hidden></span><span class="hint">Xem gợi ý</span></summary>
                 <div class="ls-body">
                   <div class="docs" data-docs="${p.id}.${k}"><b>Tài liệu của tụi mình</b>
                     <ul class="doc-list"></ul>
                     <span class="doc-empty">Chưa có tài liệu nào.</span>
                     <button type="button" class="add-doc" data-lesson="${p.id}.${k}">+ Thêm tài liệu</button>
                   </div>
+                  <details class="mcqs" data-mcqs="${p.id}.${k}" hidden><summary>Câu hỏi trắc nghiệm từ tài liệu</summary><div class="mcq-list"></div></details>
                   <div><b>Học về gì</b><ul>${learn.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div><b>Tìm ở đâu</b><ul>${find.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div class="ls-q"><b>Tự kiểm tra</b>${q}</div>
@@ -1191,23 +1246,133 @@ function buildTabs() {
 }
 
 // Bốc ngẫu nhiên một câu tự kiểm tra trong các bài đã tick (cả hai lộ trình).
+// Phạm vi: bài đã tick / bài của tuần này (Cơ bản) / tất cả. Loại: tự kiểm tra (câu có sẵn trong bài) và trắc nghiệm (từ tài liệu).
 function buildQuiz() {
   let last = "";
   $("quiz-btn").addEventListener("click", () => {
+    const scope = $("quiz-scope").value, type = $("quiz-type").value, wk = currentWeek();
+    const inScope = (p, k) => scope === "all" || (scope === "done" ? !!checkedOf(p.id)[k] : p.track === "basic" && p.n === wk);
     const pool = [];
-    for (const p of PHASES) for (const [k, t, q] of p.items) if (checkedOf(p.id)[k]) pool.push({ q, from: `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · ${t}` });
+    for (const p of PHASES) p.items.forEach(([k, t, q], i) => {
+      if (!inScope(p, k)) return;
+      const from = `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · Bài ${i + 1}. ${t}`;
+      if (type !== "mcq") pool.push({ key: "s:" + p.id + k, q, from });
+      if (type !== "self") for (const x of (state.questions || [])) if (x.phase === p.id && x.item === k) pool.push({ key: "m:" + x.id, mcq: x, q: x.q, from });
+    });
+    $("quiz-mcq").replaceChildren();
     if (!pool.length) {
-      $("quiz-q").textContent = "Chưa có bài nào được tick. Học và tick vài bài trước, rồi quay lại bốc câu hỏi nhé.";
+      $("quiz-kind").textContent = "Đố vui";
+      $("quiz-q").textContent = scope === "done" ? "Chưa có câu hỏi nào trong các bài đã tick. Thử chọn \"Bốc từ: Tất cả các bài\" nhé."
+        : scope === "week" && !wk ? "Chưa đặt ngày bắt đầu nên chưa biết tuần này là tuần mấy. Chọn phạm vi khác nhé."
+        : "Chưa có câu hỏi phù hợp. Thử đổi phạm vi hoặc loại câu hỏi.";
       $("quiz-from").textContent = "";
       return;
     }
     let pick = pool[Math.floor(Math.random() * pool.length)];
-    if (pool.length > 1) while (pick.q === last) pick = pool[Math.floor(Math.random() * pool.length)];
-    last = pick.q;
+    if (pool.length > 1) while (pick.key === last) pick = pool[Math.floor(Math.random() * pool.length)];
+    last = pick.key;
+    $("quiz-kind").textContent = pick.mcq ? "Đố vui · Trắc nghiệm" : "Đố vui · Tự kiểm tra";
     $("quiz-q").textContent = pick.q;
+    if (pick.mcq) $("quiz-mcq").append(mcqEl(pick.mcq, false));
     $("quiz-from").textContent = "Từ bài: " + pick.from;
   });
 }
+
+/* ---------- Câu hỏi trắc nghiệm ---------- */
+const LETTERS = ["A", "B", "C", "D"];
+// Dựng một câu trắc nghiệm: bấm một lựa chọn là chấm ngay, hiện giải thích và nguồn.
+function mcqEl(x, withQuestion) {
+  const box = document.createElement("div"); box.className = "mcq"; box.dataset.qid = x.id;
+  if (withQuestion) { const h = document.createElement("p"); h.className = "mcq-q"; h.textContent = x.q; box.append(h); }
+  const opts = document.createElement("div"); opts.className = "mcq-opts";
+  x.opts.forEach((o, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "mcq-opt"; b.dataset.l = LETTERS[i];
+    const L = document.createElement("b"); L.textContent = LETTERS[i];
+    const t = document.createElement("span"); t.textContent = o;
+    b.append(L, t); opts.append(b);
+  });
+  const fb = document.createElement("p"); fb.className = "mcq-fb"; fb.hidden = true;
+  box.append(opts, fb);
+  return box;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".mcq-opt");
+  if (!b) return;
+  const box = b.closest(".mcq"), x = (state.questions || []).find(q => q.id === box.dataset.qid);
+  if (!x || box.dataset.done) return;
+  box.dataset.done = "1";
+  box.querySelectorAll(".mcq-opt").forEach(o => { o.disabled = true; if (o.dataset.l === x.ans) o.classList.add("right"); });
+  const ok = b.dataset.l === x.ans;
+  if (!ok) b.classList.add("wrong");
+  const fb = box.querySelector(".mcq-fb"); fb.hidden = false; fb.className = "mcq-fb " + (ok ? "ok" : "no");
+  const head = document.createElement("b"); head.textContent = ok ? "Đúng rồi!" : `Chưa đúng. Đáp án là ${x.ans}.`;
+  fb.replaceChildren(head);
+  if (x.why) fb.append(x.why);
+  if (x.src) { const s2 = document.createElement("span"); s2.className = "src"; s2.textContent = "Nguồn: " + x.src; fb.append(s2); }
+});
+
+// Chỉ dựng lại câu hỏi trong bài khi danh sách câu hỏi thay đổi, để không xóa mất câu hai bạn đang làm dở.
+let lastQSig = "";
+function renderQuestions() {
+  const qs = state.questions || [], sig = qs.map(q => q.id).join(",");
+  if (sig === lastQSig) return;
+  lastQSig = sig;
+  document.querySelectorAll("[data-mcqs]").forEach(box => {
+    const key = box.dataset.mcqs, mine = qs.filter(q => `${q.phase}.${q.item}` === key);
+    box.hidden = !mine.length;
+    box.querySelector("summary").textContent = `Câu hỏi trắc nghiệm từ tài liệu (${mine.length})`;
+    box.querySelector(".mcq-list").replaceChildren(...mine.map(x => mcqEl(x, true)));
+    const c = document.querySelector(`[data-qcount="${key}"]`);
+    c.hidden = !mine.length; c.textContent = `${mine.length} câu hỏi`;
+  });
+}
+
+/* ---------- Thư viện tài liệu ---------- */
+function gotoLesson(key) {
+  const [phase] = key.split("."), p = PHASES.find(x => x.id === phase);
+  if (!p) return;
+  $("tab-" + p.track).click();
+  $(phase).open = true;
+  const ls = document.querySelector(`[data-docs="${key}"]`).closest("details.ls");
+  ls.open = true; ls.scrollIntoView({ block: "center" });
+}
+function renderLib() {
+  const groups = new Map();
+  for (const d of state.docs || []) {
+    const g = groups.get(d.url) || { d, lessons: [] };
+    g.lessons.push(d); groups.set(d.url, g);
+  }
+  const lib = $("lib");
+  if (!groups.size) {
+    const p = document.createElement("p"); p.className = "lib-empty";
+    p.textContent = "Chưa có tài liệu nào. Bấm \"+ Thêm tài liệu\" để thêm file PDF hoặc dán link.";
+    return lib.replaceChildren(p);
+  }
+  const qs = state.questions || [];
+  lib.replaceChildren(...[...groups.values()].map(({ d, lessons }) => {
+    const item = document.createElement("div"); item.className = "lib-item";
+    const title = document.createElement("div"); title.className = "lib-title";
+    const kind = document.createElement("span"); kind.className = "doc-kind"; kind.textContent = docKind(d.url);
+    const a = document.createElement("a"); a.textContent = d.file || d.name.split(" · ")[0];
+    if (/^https:\/\//i.test(d.url)) { a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    const nq = d.fid ? qs.filter(q => q.fid === d.fid).length : 0;
+    const meta = document.createElement("span"); meta.className = "doc-meta";
+    meta.textContent = [`${lessons.length} bài`, nq ? `${nq} câu hỏi` : "", nameOf(d.who), viDate(d.at)].filter(Boolean).join(" · ");
+    title.append(kind, a, meta);
+    const chips = document.createElement("div"); chips.className = "lib-chips";
+    for (const L of lessons) {
+      const p = PHASES.find(x => x.id === L.phase), i = p ? p.items.findIndex(it => it[0] === L.item) : -1;
+      const c = document.createElement("button"); c.type = "button"; c.className = "lib-chip"; c.dataset.goto = `${L.phase}.${L.item}`;
+      c.textContent = p ? `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · Bài ${i + 1}` : L.phase;
+      c.title = L.name;
+      chips.append(c);
+    }
+    item.append(title, chips);
+    return item;
+  }));
+}
+
+/* ---------- Tài liệu ---------- */
 
 /* ---------- Tài liệu ---------- */
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -1286,6 +1451,8 @@ function buildDocs() {
     showSugs(); $("docModal").hidden = false; setTimeout(() => $("d-name").focus(), 30);
   };
   $("add-doc-btn").addEventListener("click", () => open(""));
+  $("add-doc-btn2").addEventListener("click", () => open(""));
+  $("lib").addEventListener("click", e => { const c = e.target.closest("[data-goto]"); if (c) gotoLesson(c.dataset.goto); });
   $("lo-trinh").addEventListener("click", e => {
     const add = e.target.closest(".docs .add-doc");
     if (add) return open(add.dataset.lesson);
@@ -1445,6 +1612,8 @@ function render() {
   $("k-total").textContent = totalAll;
   $("k-bar").style.width = (doneAll / totalAll * 100) + "%";
   renderDocs();
+  renderQuestions();
+  renderLib();
 
   // Quỹ
   const fines = [...state.fines].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
