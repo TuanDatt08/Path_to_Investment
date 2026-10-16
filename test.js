@@ -18,13 +18,26 @@ function fakeSheet() {
     appendRow(row) { data.push([...row]); }, deleteRow(i) { data.splice(i - 1, 1); } };
 }
 
-const sheets = {}, props = { APP_PASSWORD: "matkhau" };
+const sheets = {}, props = { APP_PASSWORD: "matkhau" }, folders = {}, files = [];
 const ctx = {
   SpreadsheetApp: { getActive: () => ({ getSheetByName: n => sheets[n] || null, insertSheet: n => (sheets[n] = fakeSheet()) }) },
   PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null, setProperty: (k, v) => { props[k] = v; } }) },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
   ContentService: { MimeType: { JSON: "json" }, createTextOutput: s => ({ s, setMimeType() { return this; } }) },
-  Utilities: { getUuid: () => require("node:crypto").randomUUID() },
+  Utilities: {
+    getUuid: () => require("node:crypto").randomUUID(),
+    base64Decode: s => [...Buffer.from(s, "base64")].map(b => (b > 127 ? b - 256 : b)), // Apps Script trả byte có dấu
+    newBlob: (bytes, type, name) => ({ bytes, type, name }),
+  },
+  DriveApp: {
+    Access: { ANYONE_WITH_LINK: "ANYONE_WITH_LINK" }, Permission: { VIEW: "VIEW" },
+    getFolderById: id => { if (!folders[id]) throw new Error("not found"); return folders[id]; },
+    createFolder: name => {
+      const id = "fd" + Object.keys(folders).length;
+      return (folders[id] = { name, files, getId: () => id, isTrashed: () => false,
+        createFile: blob => { const fid = "f" + files.length; const f = { blob, sharing: null, setSharing(a, p) { this.sharing = a + ":" + p; }, getUrl: () => `https://drive.google.com/file/d/${fid}/view` }; files.push(f); return f; } });
+    },
+  },
 };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, "apps-script", "Code.gs"), "utf8"), ctx);
@@ -58,6 +71,34 @@ assert.strictEqual(s.fines.find(f => f.id === id).paid, true);
 assert.strictEqual(call({ type: "v" }).v, s.v);
 assert.strictEqual(call({ type: "delFine", id }).fines.length, 2);
 
+// Tài liệu: chỉ nhận link https, tên không rỗng, đúng tuần/người; xóa được
+assert.ok(call({ type: "addDoc", doc: { phase: "w2", item: "m1", name: "Lạm phát", url: "javascript:alert(1)", who: "A" } }).error, "chặn link javascript:");
+assert.ok(call({ type: "addDoc", doc: { phase: "w2", item: "m1", name: "Lạm phát", url: "http://abc.com", who: "A" } }).error, "chặn link http");
+assert.ok(call({ type: "addDoc", doc: { phase: "w2", item: "m1", name: "   ", url: "https://abc.com", who: "A" } }).error, "chặn tên rỗng");
+assert.ok(call({ type: "addDoc", doc: { phase: "x1", item: "m1", name: "a", url: "https://abc.com", who: "A" } }).error, "chặn tuần lạ");
+s = call({ type: "addDoc", doc: { phase: "w2", item: "m1", name: " Video lạm phát ", url: "https://youtu.be/abc", who: "B" } });
+assert.strictEqual(s.docs.length, 1);
+assert.deepStrictEqual([s.docs[0].phase, s.docs[0].item, s.docs[0].name, s.docs[0].who], ["w2", "m1", "Video lạm phát", "B"]);
+assert.strictEqual(call({ type: "delDoc", id: s.docs[0].id }).docs.length, 0);
+
+// Tải PDF thẳng lên: lưu vào thư mục Drive (tạo 1 lần, dùng lại), bật chia sẻ bằng link, gắn link vào bài
+const pdf = Buffer.from("%PDF-1.4\n%test\n").toString("base64");
+const doc = { phase: "w7", item: "m1", name: "Báo cáo tài chính FPT", who: "A" };
+assert.ok(call({ type: "uploadDoc", doc, file: { name: "a.pdf", type: "text/plain", data: pdf } }).error, "chặn file không khai báo PDF");
+assert.strictEqual(call({ type: "uploadDoc", doc, file: { name: "a.pdf", type: "application/pdf", data: Buffer.from("hello").toString("base64") } }).error, "File này không phải PDF");
+assert.strictEqual(call({ type: "uploadDoc", doc, file: { name: "a.pdf", type: "application/pdf", data: "A".repeat(Math.ceil(20 * 1024 * 1024 / 3) * 4 + 4) } }).error, "File quá lớn, tối đa 20MB");
+s = call({ type: "uploadDoc", doc, file: { name: "FPT 2025.pdf", type: "application/pdf", data: pdf } });
+assert.ok(!s.error, s.error);
+assert.strictEqual(s.docs.length, 1);
+assert.ok(s.docs[0].url.startsWith("https://drive.google.com/file/d/"), s.docs[0].url);
+assert.deepStrictEqual([s.docs[0].phase, s.docs[0].item, s.docs[0].name], ["w7", "m1", "Báo cáo tài chính FPT"]);
+assert.strictEqual(files[0].blob.name, "FPT 2025.pdf");
+assert.strictEqual(files[0].sharing, "ANYONE_WITH_LINK:VIEW");
+call({ type: "uploadDoc", doc, file: { name: "b/c.pdf", type: "application/pdf", data: pdf } });
+assert.strictEqual(Object.keys(folders).length, 1, "dùng lại thư mục cũ");
+assert.strictEqual(files[1].blob.name, "b_c.pdf", "bỏ ký tự không hợp lệ trong tên file");
+
 delete props.APP_PASSWORD; // không đặt mật khẩu: ai cũng dùng được
 assert.strictEqual(call({ type: "state" }, "").fines.length, 2);
+assert.strictEqual(call({ type: "state" }, "").docs.length, 2);
 console.log("OK: tất cả kiểm tra đều qua");

@@ -94,7 +94,7 @@ section { display: grid; gap: 18px; scroll-margin-top: 72px; }
 
 /* Controls */
 input, select, textarea, button { font: inherit; color: inherit; }
-input[type="text"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
+input[type="text"], input[type="password"], input[type="url"], input[type="date"], input[type="number"], select, textarea {
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; width: 100%; min-width: 0;
 }
 textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
@@ -201,6 +201,32 @@ details.ls[open] .hint::after { content: "Thu gọn ▴"; }
 .quiz-text .label { margin: 0; }
 .quiz-q { font-family: var(--font-display); font-size: 19px; line-height: 1.4; }
 .quiz-text .muted { font-size: 13px; }
+.track-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.add-doc { padding: 6px 14px; font-size: 13.5px; font-weight: 600; color: var(--accent); border: 1px dashed var(--accent); border-radius: 999px; background: transparent; justify-self: start; }
+.add-doc:hover { background: var(--accent-soft); }
+.docs { display: grid; gap: 8px; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.docs .add-doc { padding: 4px 12px; font-size: 13px; }
+.doc-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.doc-list li { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; min-width: 0; }
+.doc-kind { font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.doc-list a { color: var(--fg); font-weight: 500; overflow-wrap: anywhere; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.doc-list a:hover { text-decoration-color: var(--accent); }
+.doc-meta { font-size: 12.5px; color: var(--muted); }
+.doc-list button.del { margin-left: auto; }
+.doc-empty { font-size: 13px; color: var(--muted); }
+.doc-count { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.doc-form { text-align: left !important; width: min(480px, 100%) !important; }
+.sugs { display: flex; flex-wrap: wrap; gap: 6px; }
+.sugs .muted { font-size: 13px; }
+.sug { font-size: 12.5px; font-weight: 500; padding: 5px 10px; border-radius: 999px; text-align: left; }
+.sug.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.form-err { color: var(--down); font-size: 13.5px; font-weight: 500; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.file-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; font-size: 13.5px; }
+.file-btn { padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 999px; }
+.file-info { font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.file-clear { padding: 4px 10px; font-size: 12.5px; color: var(--muted); border-radius: 999px; }
+#d-url:disabled { opacity: .5; }
 .check li.ex + li.ex { margin-top: 0; border-top: 0; padding-top: 0; }
 .check li.ex { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
 .aside { display: grid; gap: 16px; align-content: start; }
@@ -386,9 +412,12 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
       <h2>Lộ trình từng tuần</h2>
       <p>Hai người học chung cùng một nội dung. Mỗi bài nhỏ chỉ một ý. Nhãn <span class="day-tag" style="background:var(--ref-soft);color:var(--ref)">T3</span> là học thứ 3, <span class="day-tag" style="background:var(--accent-soft);color:var(--accent)">T5</span> là học thứ 5.</p>
     </div>
-    <div class="tabs" role="tablist" aria-label="Chọn lộ trình">
-      <button type="button" role="tab" id="tab-basic" data-track="basic" aria-selected="true">Cơ bản · 9 tuần</button>
-      <button type="button" role="tab" id="tab-adv" data-track="adv" aria-selected="false">Nâng cao · học sau</button>
+    <div class="track-bar">
+      <div class="tabs" role="tablist" aria-label="Chọn lộ trình">
+        <button type="button" role="tab" id="tab-basic" data-track="basic" aria-selected="true">Cơ bản · 9 tuần</button>
+        <button type="button" role="tab" id="tab-adv" data-track="adv" aria-selected="false">Nâng cao · học sau</button>
+      </div>
+      <button type="button" class="add-doc" id="add-doc-btn">+ Thêm tài liệu</button>
     </div>
     <div id="track-basic" class="track">
       <div class="card quiz">
@@ -462,6 +491,39 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     <p>Đang mở sổ học…</p>
     <span class="login-hint">Lần đầu có thể mất vài giây.</span>
   </div>
+</div>
+<div class="login" id="docModal" hidden>
+  <form class="card doc-form" id="docForm" novalidate>
+    <h2>Thêm tài liệu</h2>
+    <label class="field"><span>Tên tài liệu</span>
+      <input type="text" id="d-name" maxlength="120" placeholder="Ví dụ: Video giải thích lạm phát dễ hiểu" autocomplete="off"></label>
+    <div class="field"><span>Link hoặc file PDF</span>
+      <input type="url" id="d-url" maxlength="500" placeholder="Dán link https://..." autocomplete="off" aria-label="Link tài liệu">
+      <div class="file-row">
+        <span class="muted">hoặc</span>
+        <button type="button" class="file-btn" id="d-file-btn">Chọn file PDF từ máy</button>
+        <input type="file" id="d-file" accept="application/pdf,.pdf" hidden>
+        <span class="file-info" id="d-file-info" hidden></span>
+        <button type="button" class="file-clear" id="d-file-clear" hidden>Bỏ chọn</button>
+      </div>
+    </div>
+    <div class="field"><span>Gắn vào bài</span>
+      <div class="sugs" id="d-sugs"></div>
+      <select id="d-lesson" aria-label="Chọn bài"></select>
+    </div>
+    <div class="field"><span>Người thêm</span>
+      <div class="seg">
+        <label><input type="radio" name="d-who" id="d-whoA" value="A" checked><span data-name="A">A</span></label>
+        <label><input type="radio" name="d-who" id="d-whoB" value="B"><span data-name="B">B</span></label>
+      </div>
+    </div>
+    <p class="form-err" id="d-err" hidden></p>
+    <p class="login-hint">File PDF dưới 20MB: chọn từ máy, trang tự lưu vào thư mục "Tài liệu chứng khoán" trên Google Drive. Ảnh, Excel hay PDF lớn hơn: để trong Drive rồi dán link.</p>
+    <div class="modal-actions">
+      <button type="button" id="d-cancel">Hủy</button>
+      <button type="submit" class="primary" id="d-save">Lưu tài liệu</button>
+    </div>
+  </form>
 </div>
 <div class="login" id="login" hidden>
   <form class="card" id="loginForm">
@@ -960,8 +1022,10 @@ function op(o) {
       if (data.error) toast(data.error, true);
       if (data.main) setState(data);
       setSync("ok", "Đã lưu");
+      return data;
     } catch (e) {
       if (e.message !== "auth") { toast("Mất kết nối, chưa lưu được thay đổi", true); setSync("err", "Mất kết nối"); }
+      return null;
     }
   });
 }
@@ -1070,8 +1134,13 @@ function buildPhases() {
             <ul class="check">${p.items.map(([k, t, q, learn, find], i) => `<li class="lesson">
               <input type="checkbox" id="c-${p.id}-${k}" data-phase="${p.id}" data-item="${k}" aria-label="Đã học xong bài ${i + 1}">
               <details class="ls">
-                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="hint">Xem gợi ý</span></summary>
+                <summary><span class="lt"><span class="dt ${i < TUE ? "d3" : "d5"}">${i < TUE ? "T3" : "T5"}</span>Bài ${i + 1}. ${t}</span><span class="doc-count" data-doccount="${p.id}.${k}" hidden></span><span class="hint">Xem gợi ý</span></summary>
                 <div class="ls-body">
+                  <div class="docs" data-docs="${p.id}.${k}"><b>Tài liệu của tụi mình</b>
+                    <ul class="doc-list"></ul>
+                    <span class="doc-empty">Chưa có tài liệu nào.</span>
+                    <button type="button" class="add-doc" data-lesson="${p.id}.${k}">+ Thêm tài liệu</button>
+                  </div>
                   <div><b>Học về gì</b><ul>${learn.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div><b>Tìm ở đâu</b><ul>${find.map(x => `<li>${x}</li>`).join("")}</ul></div>
                   <div class="ls-q"><b>Tự kiểm tra</b>${q}</div>
@@ -1137,6 +1206,153 @@ function buildQuiz() {
     last = pick.q;
     $("quiz-q").textContent = pick.q;
     $("quiz-from").textContent = "Từ bài: " + pick.from;
+  });
+}
+
+/* ---------- Tài liệu ---------- */
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+// Bỏ dấu tiếng Việt, "P/E" thành "pe", để so khớp tên tài liệu với nội dung bài.
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/\//g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const STOP = new Set("la gi cua va thi cho nguoi moi video bai sach file pdf chuong giai thich don gian de hieu cach the nao nhu mot nhung cac voi trong tren ve tu den khi vi sao tai hay link doc tai lieu phan tap so ghi chu xem".split(" "));
+const LESSONS = PHASES.flatMap(p => p.items.map(([k, t, q, learn, find], i) => ({
+  key: `${p.id}.${k}`, p, i,
+  label: `${p.track === "adv" ? "Nâng cao · " : ""}Tuần ${p.n} · Bài ${i + 1}. ${t}`,
+  title: " " + norm(t) + " ", body: " " + norm([q, ...learn, ...find].join(" ")) + " ",
+})));
+// ponytail: so khớp từ khóa đơn giản (tên bài nặng gấp 3 nội dung, cụm 2 từ nặng gấp đôi, từ càng hiếm càng nặng); cần AI đọc nội dung thì làm sau.
+const rarity = g => Math.log(1 + LESSONS.length / (1 + LESSONS.filter(L => (L.title + L.body).includes(" " + g + " ")).length));
+// Ưu tiên bài của tab đang mở; tab đó không có bài hợp thì mới gợi ý sang tab còn lại.
+function suggest(name, track) {
+  const w = norm(name).split(" ").filter(x => x.length > 1 && !STOP.has(x));
+  const grams = [...w, ...w.slice(1).map((x, i) => w[i] + " " + x)];
+  if (!grams.length) return [];
+  const pick = list => rank(list, grams);
+  const own = pick(LESSONS.filter(L => L.p.track === track));
+  return own.length ? own : pick(LESSONS);
+}
+function rank(list, grams) {
+  return list.map(L => {
+    let sc = 0;
+    for (const g of grams) {
+      const k = (g.includes(" ") ? 2 : 1) * rarity(g);
+      if (L.title.includes(" " + g + " ")) sc += 3 * k; else if (L.body.includes(" " + g + " ")) sc += k;
+    }
+    return { L, sc };
+  }).filter(x => x.sc > 0).sort((a, b) => b.sc - a.sc).slice(0, 3).map(x => x.L);
+}
+const docKind = url => /youtu\.?be/i.test(url) ? "Video" : /drive\.google|docs\.google/i.test(url) ? "Drive" : "Link";
+
+function buildDocs() {
+  const sel = $("d-lesson");
+  sel.innerHTML = `<option value="">Chọn bài…</option>` + PHASES.map(p =>
+    `<optgroup label="${esc(`${p.track === "adv" ? "Nâng cao" : "Cơ bản"} · Tuần ${p.n}: ${p.title}`)}">${p.items.map(([k, t], i) => `<option value="${p.id}.${k}">${esc(`Bài ${i + 1}. ${t}`)}</option>`).join("")}</optgroup>`).join("");
+  let manual = false;
+  const showSugs = () => {
+    const box = $("d-sugs"), name = $("d-name").value.trim(), list = suggest(name, $("tab-adv").getAttribute("aria-selected") === "true" ? "adv" : "basic");
+    if (!name) { box.innerHTML = `<span class="muted">Gõ tên tài liệu để được gợi ý bài phù hợp.</span>`; return; }
+    if (!list.length) { box.innerHTML = `<span class="muted">Chưa tìm được bài hợp, chọn trong danh sách bên dưới.</span>`; return; }
+    if (!manual) sel.value = list[0].key;
+    box.innerHTML = list.map(L => `<button type="button" class="sug${sel.value === L.key ? " on" : ""}" data-key="${L.key}">${esc(L.label)}</button>`).join("");
+  };
+  const err = t => { $("d-err").textContent = t; $("d-err").hidden = !t; };
+  const close = () => { $("docModal").hidden = true; };
+  // File PDF chọn từ máy: có file thì ô link bị khóa, gửi file thay cho link.
+  const MAX_PDF = 20 * 1024 * 1024;
+  const fmtMB = b => b < 1048576 ? Math.max(1, Math.round(b / 1024)) + " KB" : (b / 1048576).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + " MB";
+  let picked = null;
+  const showFile = () => {
+    $("d-file-info").hidden = $("d-file-clear").hidden = !picked;
+    $("d-file-info").textContent = picked ? `${picked.name} · ${fmtMB(picked.size)}` : "";
+    $("d-file-btn").textContent = picked ? "Chọn file khác" : "Chọn file PDF từ máy";
+    $("d-url").disabled = !!picked;
+    if (picked) $("d-url").value = "";
+  };
+  const clearFile = () => { picked = null; $("d-file").value = ""; showFile(); };
+  $("d-file-btn").addEventListener("click", () => $("d-file").click());
+  $("d-file-clear").addEventListener("click", clearFile);
+  $("d-file").addEventListener("change", () => {
+    const f = $("d-file").files[0];
+    if (!f) return;
+    if (!(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) { clearFile(); return err("Chỉ tải lên được file PDF. File khác thì để trong Drive rồi dán link."); }
+    if (f.size > MAX_PDF) { clearFile(); return err(`File ${fmtMB(f.size)} quá lớn, tối đa 20 MB. Hãy để trong Drive rồi dán link.`); }
+    picked = f; err(""); showFile();
+    if (!$("d-name").value.trim()) { $("d-name").value = f.name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim().slice(0, 120); showSugs(); }
+  });
+  const readB64 = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = rej; r.readAsDataURL(f); });
+  const open = lesson => {
+    $("docForm").reset(); err(""); clearFile(); manual = !!lesson; sel.value = lesson || "";
+    let who = "A"; try { who = localStorage.getItem("ck8-who") === "B" ? "B" : "A"; } catch (e) {}
+    $("d-who" + who).checked = true;
+    showSugs(); $("docModal").hidden = false; setTimeout(() => $("d-name").focus(), 30);
+  };
+  $("add-doc-btn").addEventListener("click", () => open(""));
+  $("lo-trinh").addEventListener("click", e => {
+    const add = e.target.closest(".docs .add-doc");
+    if (add) return open(add.dataset.lesson);
+    const b = e.target.closest("button.del-doc");
+    if (!b) return;
+    if (!b.classList.contains("armed")) {
+      b.classList.add("armed"); b.textContent = "Xóa thật?";
+      setTimeout(() => { b.classList.remove("armed"); b.textContent = "Xóa"; }, 3000);
+      return;
+    }
+    op({ type: "delDoc", id: b.dataset.id });
+  });
+  $("d-name").addEventListener("input", showSugs);
+  $("d-sugs").addEventListener("click", e => { const b = e.target.closest(".sug"); if (b) { sel.value = b.dataset.key; manual = true; showSugs(); } });
+  sel.addEventListener("change", () => { manual = true; showSugs(); });
+  $("d-cancel").addEventListener("click", close);
+  $("docModal").addEventListener("click", e => { if (e.target === $("docModal")) close(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("docModal").hidden) close(); });
+  $("docForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $("d-name").value.trim(), url = $("d-url").value.trim(), lesson = sel.value;
+    const who = document.querySelector('input[name="d-who"]:checked').value;
+    const bad = !name ? "Nhập tên tài liệu."
+      : !picked && !/^https:\/\/[^\s<>"]+$/i.test(url) ? "Dán link bắt đầu bằng https://, hoặc chọn file PDF từ máy."
+      : !lesson ? "Chọn bài để gắn tài liệu." : "";
+    if (bad) return err(bad);
+    try { localStorage.setItem("ck8-who", who); } catch (e2) {}
+    const [phase, item] = lesson.split(".");
+    const done = () => { $("d-save").disabled = false; $("d-save").textContent = "Lưu tài liệu"; };
+    $("d-save").disabled = true; $("d-save").textContent = picked ? `Đang tải lên ${fmtMB(picked.size)}…` : "Đang lưu…";
+    let d;
+    if (picked) {
+      let data;
+      try { data = await readB64(picked); } catch (e3) { done(); return err("Không đọc được file, thử chọn lại."); }
+      d = await op({ type: "uploadDoc", doc: { phase, item, name, who }, file: { name: picked.name, type: "application/pdf", data } });
+    } else {
+      d = await op({ type: "addDoc", doc: { phase, item, name, url, who } });
+    }
+    done();
+    if (!d || d.error) return err(d ? d.error : "Chưa lưu được, kiểm tra mạng rồi thử lại.");
+    close();
+    toast(d.warn || "Đã thêm tài liệu");
+    const p = PHASES.find(x => x.id === phase);
+    $("tab-" + p.track).click();
+    $(phase).open = true;
+    const ls = document.querySelector(`[data-docs="${lesson}"]`).closest("details.ls");
+    ls.open = true; ls.scrollIntoView({ block: "center" });
+  });
+}
+
+function renderDocs() {
+  const docs = state.docs || [];
+  document.querySelectorAll("[data-docs]").forEach(box => {
+    const key = box.dataset.docs, mine = docs.filter(d => `${d.phase}.${d.item}` === key);
+    box.querySelector(".doc-list").replaceChildren(...mine.map(d => {
+      const li = document.createElement("li");
+      const kind = document.createElement("span"); kind.className = "doc-kind"; kind.textContent = docKind(d.url);
+      const a = document.createElement("a"); a.textContent = d.name;
+      if (/^https:\/\//i.test(d.url)) { a.href = d.url; a.target = "_blank"; a.rel = "noopener noreferrer"; } // chỉ mở link https, kể cả khi ai đó sửa tay trong Sheet
+      const meta = document.createElement("span"); meta.className = "doc-meta"; meta.textContent = `${nameOf(d.who)}${d.at ? " · " + viDate(d.at) : ""}`;
+      const del = document.createElement("button"); del.type = "button"; del.className = "del del-doc"; del.dataset.id = d.id; del.textContent = "Xóa";
+      li.append(kind, a, meta, del);
+      return li;
+    }));
+    box.querySelector(".doc-empty").hidden = mine.length > 0;
+    const c = document.querySelector(`[data-doccount="${key}"]`);
+    c.hidden = !mine.length; c.textContent = `${mine.length} tài liệu`;
   });
 }
 
@@ -1228,6 +1444,7 @@ function render() {
   $("k-done").textContent = doneAll;
   $("k-total").textContent = totalAll;
   $("k-bar").style.width = (doneAll / totalAll * 100) + "%";
+  renderDocs();
 
   // Quỹ
   const fines = [...state.fines].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
@@ -1283,6 +1500,7 @@ function celebrate(before) {
 buildPhases();
 buildTabs();
 buildQuiz();
+buildDocs();
 buildFund();
 buildSettings();
 render();

@@ -8,7 +8,7 @@ Có hai lộ trình, chuyển qua lại bằng tab:
 
 ```
 Trang web (Netlify)  ──►  Google Apps Script  ──►  Google Sheet
-public/index.html         apps-script/Code.gs      4 tab: Cài đặt, Tiến độ, Ghi chú, Quỹ phạt
+public/index.html         apps-script/Code.gs      5 tab: Cài đặt, Tiến độ, Ghi chú, Quỹ phạt, Tài liệu
 ```
 
 - Miễn phí, không cần máy chủ riêng.
