@@ -1,4 +1,4 @@
-// Backend cho Lộ trình Chứng khoán 8 Tuần: chạy trên Google Apps Script, lưu dữ liệu vào chính Google Sheet này.
+// Backend cho Lộ trình Chứng khoán 9 Tuần: chạy trên Google Apps Script, lưu dữ liệu vào chính Google Sheet này.
 // Mật khẩu chung (tùy chọn): Project Settings → Script properties → thêm APP_PASSWORD. Không đặt thì ai có link cũng dùng được.
 // Trang web gửi mọi thao tác bằng POST: { pw, op: { type, ... } } và nhận lại toàn bộ dữ liệu.
 

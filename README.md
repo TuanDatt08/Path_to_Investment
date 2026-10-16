@@ -4,7 +4,7 @@ Web app cho 2 người cùng theo dõi lộ trình học: checklist từng bài 
 
 Có hai lộ trình, chuyển qua lại bằng tab:
 - **Cơ bản (9 tuần, 41 bài):** cho người mới, tên bài là câu hỏi đời thường, có ví dụ gần gũi. Mã tuần `w1`–`w9`.
-- **Nâng cao (học sau):** chi tiết hơn, nhiều thuật ngữ hơn. Mã tuần `a1`–`a9`.
+- **Nâng cao (học sau):** chi tiết hơn, nhiều thuật ngữ hơn. Mã tuần `a1`–`a9`, tuần 9 là tùy chọn.
 
 ```
 Trang web (Netlify)  ──►  Google Apps Script  ──►  Google Sheet
@@ -13,10 +13,10 @@ public/index.html         apps-script/Code.gs      4 tab: Cài đặt, Tiến đ
 
 - Miễn phí, không cần máy chủ riêng.
 - Mở Google Sheet là thấy dữ liệu dạng bảng. Google tự lưu lịch sử phiên bản (File → Lịch sử phiên bản).
-- Mật khẩu chung đặt trong Apps Script. Trang web hỏi mật khẩu một lần rồi nhớ trong trình duyệt.
+- Mật khẩu chung (tùy chọn, nên đặt) nằm trong Apps Script. Nếu có, trang web hỏi một lần rồi nhớ trong trình duyệt.
 
 ```
-ck8/
+Path_to_Investment/
 ├── public/index.html     # toàn bộ giao diện (Netlify phục vụ thư mục này)
 ├── apps-script/Code.gs   # code dán vào Google Apps Script
 ├── test.js               # kiểm tra Code.gs trên máy: npm test
@@ -34,7 +34,7 @@ Vào https://sheets.new, đặt tên file, ví dụ "Lộ trình chứng khoán"
 1. Trong Sheet: **Tiện ích mở rộng → Apps Script** (Extensions → Apps Script).
 2. Xóa hết code mẫu trong `Code.gs`, dán toàn bộ nội dung file `apps-script/Code.gs` vào, bấm **Lưu** (Ctrl + S).
 
-### 3. Đặt mật khẩu
+### 3. Đặt mật khẩu (tùy chọn, nên làm)
 
 Trong Apps Script: biểu tượng bánh răng **Cài đặt dự án (Project Settings)** → kéo xuống **Thuộc tính tập lệnh (Script properties)** → **Thêm thuộc tính**:
 
@@ -42,7 +42,7 @@ Trong Apps Script: biểu tượng bánh răng **Cài đặt dự án (Project S
 |---|---|
 | `APP_PASSWORD` | mật khẩu chung của hai bạn |
 
-Chưa đặt mật khẩu thì script từ chối mọi yêu cầu.
+Không đặt mật khẩu thì ai có link Apps Script cũng đọc và sửa được dữ liệu. Link này nằm sẵn trong `public/index.html`, nên nếu repo để public thì hãy đặt mật khẩu.
 
 ### 4. Deploy thành Web App
 
@@ -54,7 +54,7 @@ Chưa đặt mật khẩu thì script từ chối mọi yêu cầu.
    Google sẽ báo "Google chưa xác minh ứng dụng này". Đây là bình thường vì script do chính bạn viết: bấm **Nâng cao → Đi tới ... (không an toàn)** → **Cho phép**.
 5. Copy **URL ứng dụng web**, dạng `https://script.google.com/macros/s/.../exec`.
 
-"Bất kỳ ai" nghĩa là trang web gọi được script mà không cần đăng nhập Google. Dữ liệu vẫn được bảo vệ bằng `APP_PASSWORD`.
+"Bất kỳ ai" nghĩa là trang web gọi được script mà không cần đăng nhập Google. Dữ liệu chỉ được bảo vệ khi đã đặt `APP_PASSWORD`.
 
 ### 5. Dán link vào trang web
 
@@ -94,4 +94,4 @@ Kiểm tra `Code.gs` trên máy trước khi dán: `npm test`.
 - **Tốc độ:** mỗi thao tác mất khoảng 1–2 giây để lưu. Góc trên phải hiện "Đang lưu…" rồi "Đã lưu".
 - **Đồng bộ:** trang hỏi Sheet mỗi 10 giây, nên thay đổi của người kia hiện ra sau vài giây.
 - **Giới hạn của Google:** Apps Script có hạn mức sử dụng mỗi ngày. Với 2 người thì thường không chạm tới, nhưng nên xem lại quota hiện hành nếu thấy lỗi lạ.
-- **Đổi mật khẩu:** sửa `APP_PASSWORD` trong Script properties. Lần mở tới, trang sẽ hỏi lại mật khẩu.
+- **Đổi hoặc bỏ mật khẩu:** sửa hoặc xóa `APP_PASSWORD` trong Script properties. Đổi mật khẩu thì lần mở tới trang sẽ hỏi lại.

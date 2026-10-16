@@ -90,7 +90,7 @@ section { display: grid; gap: 18px; scroll-margin-top: 72px; }
 
 /* Controls */
 input, select, textarea, button { font: inherit; color: inherit; }
-input[type="text"], input[type="date"], input[type="number"], select, textarea {
+input[type="text"], input[type="password"], input[type="date"], input[type="number"], select, textarea {
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; width: 100%; min-width: 0;
 }
 textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
@@ -253,7 +253,16 @@ button.del.armed { background: var(--down); border-color: var(--down); color: va
 .empty { padding: 28px 16px; text-align: center; color: var(--muted); }
 
 .login { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter: blur(6px); }
-.login form { width: min(380px, 100%); padding: 28px; display: grid; gap: 12px; }
+.login form { width: min(380px, 100%); padding: 32px 28px 24px; display: grid; gap: 14px; justify-items: stretch; text-align: center; }
+.login .login-logo { justify-self: center; }
+#login-msg { color: var(--muted); }
+#login-msg.err { color: var(--down); font-weight: 500; }
+.pw-wrap { position: relative; }
+.pw-wrap input { padding: 12px 64px 12px 14px; font-size: 16px; }
+.pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); padding: 6px 10px; border: 0; background: transparent; color: var(--accent); font-size: 13px; }
+.login-hint { font-size: 13px; color: var(--muted); }
+.shake { animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; z-index: 20;
   background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 16px; font-weight: 500; max-width: calc(100% - 32px);
@@ -441,10 +450,15 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="login" id="login" hidden>
   <form class="card" id="loginForm">
+    <svg class="login-logo" width="44" height="44" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c-5 0-8 7-10 13-2 7 3 15 10 15s12-8 10-15C24 9 21 2 16 2z" fill="var(--accent)"/><path d="M16 6c-3.5 0-5.5 5.5-7 10-1.5 5 2 10.5 7 10.5s8.5-5.5 7-10.5C21.5 11.5 19.5 6 16 6z" fill="var(--flesh)"/><circle cx="16" cy="19" r="4.5" fill="var(--ceil)"/></svg>
     <h2>Chào hai bạn</h2>
-    <p class="muted" id="login-msg">Nhập mật khẩu chung của hai bạn.</p>
-    <input type="password" id="pw" required autocomplete="current-password" aria-label="Mật khẩu">
-    <button type="submit" class="primary">Vào học</button>
+    <p id="login-msg">Nhập mật khẩu chung để vào học.</p>
+    <div class="pw-wrap">
+      <input type="password" id="pw" required autocomplete="current-password" placeholder="Mật khẩu" aria-label="Mật khẩu">
+      <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Hiện mật khẩu">Hiện</button>
+    </div>
+    <button type="submit" class="primary" id="login-btn">Vào học</button>
+    <p class="login-hint">Chưa có mật khẩu? Hỏi bạn học cùng nhé.</p>
   </form>
 </div>
 
@@ -932,18 +946,46 @@ function load() {
     catch (e) { if (e.message !== "auth") setSync("err", "Không kết nối được Google Sheet"); }
   });
 }
+// Chỉ báo "chưa đúng" khi người dùng đã thật sự nhập mật khẩu; lần đầu mở trang thì chỉ mời nhập.
 function showLogin(msg) {
+  const wrong = !!pw && msg === "Sai mật khẩu";
   $("login").hidden = false;
-  $("login-msg").textContent = msg && msg !== "Sai mật khẩu" ? msg : msg ? "Sai mật khẩu, nhập lại nhé." : "Nhập mật khẩu chung của hai bạn.";
+  $("login-msg").textContent = wrong ? "Mật khẩu chưa đúng, thử lại nhé." : msg && msg !== "Sai mật khẩu" ? msg : "Nhập mật khẩu chung để vào học.";
+  $("login-msg").classList.toggle("err", wrong);
+  if (wrong) {
+    pw = "";
+    try { localStorage.removeItem(PW_KEY); } catch (e) {}
+    const f = $("loginForm"); f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake");
+  }
+  $("login-btn").disabled = false; $("login-btn").textContent = "Vào học";
   setSync("err", "Chưa đăng nhập");
-  setTimeout(() => $("pw").focus(), 50);
+  setTimeout(() => $("pw").select(), 50);
 }
+$("pw-toggle").addEventListener("click", () => {
+  const show = $("pw").type === "password";
+  $("pw").type = show ? "text" : "password";
+  $("pw-toggle").textContent = show ? "Ẩn" : "Hiện";
+  $("pw-toggle").setAttribute("aria-label", show ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+});
+// Giữ khung đăng nhập cho đến khi server xác nhận đúng mật khẩu, rồi mới đóng.
 $("loginForm").addEventListener("submit", e => {
   e.preventDefault();
   pw = $("pw").value;
-  try { localStorage.setItem(PW_KEY, pw); } catch (err) {}
-  $("login").hidden = true;
-  load();
+  $("login-btn").disabled = true; $("login-btn").textContent = "Đang kiểm tra…";
+  queue(async () => {
+    try {
+      state = await call({ type: "state" });
+      try { localStorage.setItem(PW_KEY, pw); } catch (err) {}
+      $("login").hidden = true;
+      firstRender = true; render(); setSync("ok", "Đã đồng bộ");
+    } catch (err) {
+      if (err.message !== "auth") {
+        $("login-msg").textContent = "Không kết nối được, kiểm tra mạng rồi thử lại.";
+        $("login-msg").classList.add("err");
+        $("login-btn").disabled = false; $("login-btn").textContent = "Vào học";
+      }
+    }
+  });
 });
 function setState(s) { const before = phaseDone(); state = s; render(); celebrate(before); }
 function setSync(cls, text) { const s = $("sync"); s.className = "sync " + cls; s.textContent = text; }
