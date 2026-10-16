@@ -920,12 +920,19 @@ const fineAmt = f => f.type === PASS ? 0 : (f.amount || 0);
 /* ---------- API (Google Apps Script) ---------- */
 const PW_KEY = "ck8-pw";
 let pw = "";
-// Mặc định chỉ nhớ mật khẩu trong tab đang mở (sessionStorage); tick "Nhớ mật khẩu" thì nhớ luôn trên máy (localStorage).
-try { pw = localStorage.getItem(PW_KEY) || sessionStorage.getItem(PW_KEY) || ""; } catch (e) {}
+// Tick "Nhớ mật khẩu": nhớ luôn trên máy (localStorage).
+// Không tick: chỉ giữ khi bấm F5. Mở tab mới, mở lại trình duyệt hay trình duyệt tự khôi phục tab đều phải nhập lại,
+// vì trình duyệt có thể khôi phục cả sessionStorage của tab cũ nên không dựa vào riêng nó được.
+const REMEMBER_KEY = "ck8-pw-nho";
+try {
+  localStorage.removeItem(PW_KEY); // bản cũ lưu mật khẩu vĩnh viễn ở khóa này: xóa đi
+  const nav = performance.getEntriesByType("navigation")[0];
+  pw = localStorage.getItem(REMEMBER_KEY) || (nav && nav.type === "reload" ? sessionStorage.getItem(PW_KEY) : "") || "";
+} catch (e) {}
 function savePw(remember) {
   try {
-    localStorage.removeItem(PW_KEY); sessionStorage.removeItem(PW_KEY);
-    if (pw) (remember ? localStorage : sessionStorage).setItem(PW_KEY, pw);
+    localStorage.removeItem(REMEMBER_KEY); sessionStorage.removeItem(PW_KEY);
+    if (pw) remember ? localStorage.setItem(REMEMBER_KEY, pw) : sessionStorage.setItem(PW_KEY, pw);
   } catch (e) {}
   $("logout").hidden = !pw;
 }
