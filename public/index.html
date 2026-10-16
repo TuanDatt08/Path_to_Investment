@@ -77,6 +77,10 @@ nav {
 .links { display: flex; gap: 4px; overflow-x: auto; }
 .links a { color: var(--muted); text-decoration: none; padding: 6px 10px; border-radius: 999px; font-size: 14px; font-weight: 500; white-space: nowrap; }
 .links a:hover { color: var(--fg); background: var(--surface); }
+.nav-right { display: flex; gap: 12px; align-items: center; }
+.logout { padding: 5px 12px; font-size: 12.5px; font-weight: 500; color: var(--muted); border-radius: 999px; }
+.remember { display: flex; gap: 8px; align-items: center; justify-content: center; font-size: 13.5px; color: var(--muted); cursor: pointer; }
+.remember input { accent-color: var(--accent); width: 16px; height: 16px; }
 .sync { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
 .sync::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ref); }
 .sync.ok::before { background: var(--accent); }
@@ -313,7 +317,7 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     <div class="links">
       <a href="#tong-quan">Tổng quan</a><a href="#lich">Lịch</a><a href="#lo-trinh">Lộ trình</a><a href="#quy">Quỹ</a>
     </div>
-    <span class="sync" id="sync">Đang kết nối…</span>
+    <span class="nav-right"><span class="sync" id="sync">Đang kết nối…</span><button type="button" class="logout" id="logout" hidden>Đăng xuất</button></span>
   </div>
 </nav>
 
@@ -468,6 +472,7 @@ footer { max-width: 1080px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
       <input type="password" id="pw" required autocomplete="current-password" placeholder="Mật khẩu" aria-label="Mật khẩu">
       <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Hiện mật khẩu">Hiện</button>
     </div>
+    <label class="remember"><input type="checkbox" id="remember"> Nhớ mật khẩu trên máy này</label>
     <button type="submit" class="primary" id="login-btn">Vào học</button>
     <p class="login-hint">Chưa có mật khẩu? Hỏi bạn học cùng nhé.</p>
   </form>
@@ -915,7 +920,15 @@ const fineAmt = f => f.type === PASS ? 0 : (f.amount || 0);
 /* ---------- API (Google Apps Script) ---------- */
 const PW_KEY = "ck8-pw";
 let pw = "";
-try { pw = localStorage.getItem(PW_KEY) || ""; } catch (e) {}
+// Mặc định chỉ nhớ mật khẩu trong tab đang mở (sessionStorage); tick "Nhớ mật khẩu" thì nhớ luôn trên máy (localStorage).
+try { pw = localStorage.getItem(PW_KEY) || sessionStorage.getItem(PW_KEY) || ""; } catch (e) {}
+function savePw(remember) {
+  try {
+    localStorage.removeItem(PW_KEY); sessionStorage.removeItem(PW_KEY);
+    if (pw) (remember ? localStorage : sessionStorage).setItem(PW_KEY, pw);
+  } catch (e) {}
+  $("logout").hidden = !pw;
+}
 
 // Không đặt Content-Type: gửi dạng text/plain để trình duyệt không cần hỏi trước (CORS preflight), Apps Script mới nhận được.
 // Nhớ trang có đặt mật khẩu hay không, để lần sau hiện khung mật khẩu ngay, khỏi chờ Google trả lời.
@@ -959,7 +972,7 @@ function poll() {
 function load() {
   setSync("", "Đang tải…");
   queue(async () => {
-    try { state = await call({ type: "state" }); firstRender = true; render(); setSync("ok", "Đã đồng bộ"); }
+    try { state = await call({ type: "state" }); firstRender = true; render(); setSync("ok", "Đã đồng bộ"); $("logout").hidden = !pw; }
     catch (e) { if (e.message !== "auth") setSync("err", "Không kết nối được Google Sheet"); }
     $("loading").hidden = true;
   });
@@ -973,13 +986,17 @@ function showLogin(msg) {
   $("login-msg").classList.toggle("err", wrong);
   if (wrong) {
     pw = "";
-    try { localStorage.removeItem(PW_KEY); } catch (e) {}
+    savePw(false);
     const f = $("loginForm"); f.classList.remove("shake"); void f.offsetWidth; f.classList.add("shake");
   }
   $("login-btn").disabled = false; $("login-btn").textContent = "Vào học";
   setSync("err", "Chưa đăng nhập");
   setTimeout(() => $("pw").select(), 50);
 }
+$("logout").addEventListener("click", () => {
+  pw = ""; savePw(false);
+  location.reload();
+});
 $("pw-toggle").addEventListener("click", () => {
   const show = $("pw").type === "password";
   $("pw").type = show ? "text" : "password";
@@ -994,7 +1011,7 @@ $("loginForm").addEventListener("submit", e => {
   queue(async () => {
     try {
       state = await call({ type: "state" });
-      try { localStorage.setItem(PW_KEY, pw); } catch (err) {}
+      savePw($("remember").checked);
       $("login").hidden = true;
       firstRender = true; render(); setSync("ok", "Đã đồng bộ");
     } catch (err) {
